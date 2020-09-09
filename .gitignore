@@ -1,0 +1,15 @@
+# This file tells git to ignore certain files and folders, so they don't get accidentally added to our repo.
+
+# Top level directories
+/data/
+/bin/
+
+# All directories
+docs/
+out/
+
+# File types
+*.csv
+*.tsv
+*.png
+.DS_Store
