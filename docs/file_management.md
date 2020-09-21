@@ -1,6 +1,6 @@
 # Data Management
 
-This is an overview of the file management strategy for this project.  The purpose is to have an organized system in place to both organize your work as it happens as well as to make it approachable to other current and future team members.
+This is an overview of the file management strategy for this project.  The purpose is to have a system in place to both organize our work as it happens as well as to make it approachable to other current and future team members.
 
 Each project is different and evolves over time and accordingly requires unique and flexible management standards. Thus, consider this a "living document" that is open to ongoing revision.
 
@@ -59,7 +59,7 @@ analysis/
 
 We'll save the output of any scripts to the conventionally-named `out/` directory. This is necessary in cases where a script produces a large number of files, but even if a script only produces a few files, saving them in their own directory prevents git from constantly harassing us about untracked files.
 
-The specific names and numbers of level -one and -two directories are only a rough outline. As the semester progresses, we might find that one of these level-one goals will grow enough in size and complexity that we need to split it into two separate level-one directories. There are no hard and fast rules here. Project organization is less a set of prescriptions and more of a process of constantly asking yourself, "Would someone with a reasonable background in data science who's never seen this project before be able to understand what's happening?"
+The specific names and numbers of level -one and -two directories are only a rough outline. As the semester progresses, we might find that one of these level-one goals will grow enough in size and complexity that we need to split it into two separate level-one directories. There are no hard and fast rules here. Project organization is less a set of prescriptions and more of a process of constantly asking, "Would someone with a reasonable background in data science who's never seen this project before be able to understand what's happening?"
 
 ## Naming Conventions
 
@@ -71,14 +71,18 @@ Variable names in scripts follow the same guidelines. Where possible, use the co
 
 ## Code Style
 
-We will follow [PEP8](https://www.python.org/dev/peps/pep-0008/) conventions.
+We will broadly follow [PEP8](https://www.python.org/dev/peps/pep-0008/) conventions. To ensure our code is readable for a broad audience, use comments liberally and separate logical sections with blank lines.
 
 ## Documentation and Metadata
 
+
+
 ## Version Control
 
-We are using GitHub to version our project and collaboratively write code.
+We are using GitHub to version our project and collaboratively write code using a fork and pull model. To contribute to this project, first fork the repository, make the changes and push them to your fork, and initiate a pull request to be reviewed by a team member before incorporating the modifications into the shared repo.
 
-## Data Storage
+## Data and Storage
 
-Data will not be versioned with git and will instead be stored on our [Google Drive](https://drive.google.com/drive/folders/1h2HrEapw4jll0k-yVxKWsmqtmQxOabCZ?usp=sharing). The directory structure of the Drive storage will exactly match that of the repository where data is output and stored on your local machines. No other files, however, will be stored in Drive.
+Raw data will be saved in the top level `data/` directory and the output of any analyses will be stored alongside the script that generates it in its `out/` directory. Data is considered "read-only" and thus will never be edited.
+
+Data will not be versioned with git and will instead be stored on our [Google Drive](https://drive.google.com/drive/folders/1h2HrEapw4jll0k-yVxKWsmqtmQxOabCZ?usp=sharing). The directory structure of the Drive storage will exactly match that of the repository where data is output and stored on the local machines. No other files, however, will be stored in Drive.
