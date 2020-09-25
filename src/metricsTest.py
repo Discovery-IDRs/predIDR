@@ -1,4 +1,4 @@
-from metrics import *
+from src.metrics import *
 import unittest
 import math
 """Functions to test metrics calculation."""
