@@ -49,7 +49,6 @@ def get_confusion_matrix1(seq, ref):
     return conf_mat_dict
 
 
-
 def get_confusion_matrix2(seqlist, reflist):
     """Return 2x2 confusion matrix for a list of sequences.
 
@@ -140,6 +139,7 @@ def get_sensitivity(cmatrix):
                Measures the proportion of positives that are correctly identified
     """
     return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FN"]))*100
+
 
 def get_specificity(cmatrix):
     """Returns sensitivity for a 2x2 confusion matrix
