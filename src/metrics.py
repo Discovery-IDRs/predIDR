@@ -70,8 +70,6 @@ def get_confusion_matrix2(seqlist, reflist):
         i+= 1
     return cmatrix
 
-
-
 def get_accuracy(cmatrix):
     return (cmatrix["TP"] + cmatrix["TN"])/(cmatrix["TP"] + cmatrix["TN"]+ cmatrix["FP"] + cmatrix["FN"])
 
@@ -79,7 +77,29 @@ def get_MCC(cmatrix):
     return ((cmatrix["TP"] * cmatrix["TN"]) - (cmatrix["FP"] * cmatrix["FN"])) / math.sqrt((cmatrix["TP"] + cmatrix["FP"]) * (cmatrix["TP"] + cmatrix["FN"]) * (cmatrix["TN"] + cmatrix["FP"]) * (cmatrix["TN"] + cmatrix["FN"]))
 
 def get_sensitivity(cmatrix):
+    """Returns sensitivity for a 2x2 confusion matrix
+       Parameters
+       ----------
+           cmatrix : dict
+               Counts for true positives, true negatives, false positives, and
+               false negatives, keyed by TP, TN, FP, and FN, respectively.
+       Returns
+       -------
+           sensitivity : float
+               Measures the proportion of positives that are correctly identified
+    """
     return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FN"]))*100
 
 def get_specificity(cmatrix):
+    """Returns sensitivity for a 2x2 confusion matrix
+       Parameters
+       ----------
+           cmatrix : dict
+               Counts for true positives, true negatives, false positives, and
+               false negatives, keyed by TP, TN, FP, and FN, respectively.
+       Returns
+       -------
+           specificity : float
+               Measures the proportion of negatives that are correctly identified
+    """
     return (cmatrix["TN"]/(cmatrix["FP"] + cmatrix["TN"]))*100
