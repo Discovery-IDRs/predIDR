@@ -1,6 +1,8 @@
-from metrics import *
+
 import unittest
 import math
+from src.metrics import *
+
 """Functions to test metrics calculation."""
 
 class TestStringMethods(unittest.TestCase):
