@@ -1,6 +1,8 @@
 from src.metrics import *
 import unittest
 import math
+from src.metrics import *
+
 """Functions to test metrics calculation."""
 
 class TestStringMethods(unittest.TestCase):
@@ -88,3 +90,4 @@ class TestStringMethods(unittest.TestCase):
         expectedF1 = (1 + 0.5 ** 2) * ((actualPrecision * actualSensitivity) / (0.5 ** 2 * actualPrecision + actualSensitivity))
         self.assertEqual(actualF1, expectedF1)
         return
+

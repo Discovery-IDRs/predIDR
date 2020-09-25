@@ -26,18 +26,20 @@ def get_confusion_matrix1(seq, ref):
 
     TP, FP, TN, FN = 0, 0, 0, 0
 
+    ref_counter = 0
     for s in seq:
-        for r in ref:
-            if s == 0:
-                if r == s:
-                    TN += 1
-                else:
-                    FP += 1
-            elif s == 1:
-                if r == s:
-                    TP += 1
-                else:
-                    FN += 1
+        r = ref[ref_counter]
+        if s == 0:
+            if r == s:
+                TN += 1
+            else:
+                FP += 1
+        elif s == 1:
+            if r == s:
+                TP += 1
+            else:
+                FN += 1
+        ref_counter += 1
 
     conf_mat_dict = {
         "TP": TP,
@@ -69,14 +71,16 @@ def get_confusion_matrix2(seqlist, reflist):
     """
 
     TP, FP, TN, FN = 0, 0, 0, 0
+    ref_counter = 0
 
     for s in seqlist:
-        for r in reflist:
-            dict = get_confusion_matrix1(s,r)
-            TP += dict.get("TP")
-            FP += dict.get("FP")
-            TN += dict.get("TN")
-            FN += dict.get("FN")
+        r = reflist[ref_counter]
+        dict = get_confusion_matrix1(s,r)
+        TP += dict.get("TP")
+        FP += dict.get("FP")
+        TN += dict.get("TN")
+        FN += dict.get("FN")
+        ref_counter += 1
 
     conf_mat_dict = {
         "TP": TP,
