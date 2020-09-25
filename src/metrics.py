@@ -138,7 +138,7 @@ def get_sensitivity(cmatrix):
            sensitivity : float
                Measures the proportion of positives that are correctly identified
     """
-    return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FN"]))*100
+    return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FN"]))
 
 
 def get_specificity(cmatrix):
@@ -153,4 +153,40 @@ def get_specificity(cmatrix):
            specificity : float
                Measures the proportion of negatives that are correctly identified
     """
-    return (cmatrix["TN"]/(cmatrix["FP"] + cmatrix["TN"]))*100
+    return (cmatrix["TN"]/(cmatrix["FP"] + cmatrix["TN"]))
+
+def get_precision(cmatrix):
+    """Returns sensitivity for a 2x2 confusion matrix
+       Parameters
+       ----------
+           cmatrix : dict
+               Counts for true positives, true negatives, false positives, and
+               false negatives, keyed by TP, TN, FP, and FN, respectively.
+       Returns
+       -------
+           precision : float
+               Measures how many selected items are relevant
+    """
+    return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FP"]))
+
+def get_f1(cmatrix, b):
+    """Returns sensitivity for a 2x2 confusion matrix
+       Parameters
+       ----------
+           cmatrix : dict
+               Counts for true positives, true negatives, false positives, and
+               false negatives, keyed by TP, TN, FP, and FN, respectively.
+           b : float
+               A postive, real factor such that recall (sensitivity) is
+               considered b times as important as precision
+       Returns
+       -------
+           f1 : float
+               Harmonic mean of precision of recall
+               Value between 0 and 1
+               Measure of a test's accuracy
+    """
+
+    precision = get_precision(cmatrix)
+    recall = get_sensitivity(cmatrix)
+    return (1 + b**2) * ((precision * recall) / (b**2 * precision + recall))
