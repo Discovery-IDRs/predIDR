@@ -33,12 +33,12 @@ def get_confusion_matrix1(seq, ref):
             if r == s:
                 TN += 1
             else:
-                FP += 1
+                FN += 1
         elif s == 1:
             if r == s:
                 TP += 1
             else:
-                FN += 1
+                FP += 1
         ref_counter += 1
 
     conf_mat_dict = {
