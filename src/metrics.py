@@ -18,7 +18,32 @@ def get_confusion_matrix1(seq, ref):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
-    pass
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
+
+    for s in seq:
+        for r in ref:
+            if s == 0:
+                if r == s:
+                    tn += 1
+                else:
+                    fp += 1
+            elif s == 1:
+                if r == s:
+                    tp += 1
+                else:
+                    fn += 1
+
+    conf_mat_dict = {
+        "tp": tp,
+        "fp": fp,
+        "tn": tn,
+        "fn": fn
+    }
+
+    return conf_mat_dict
 
 
 def get_confusion_matrix2(seqlist, reflist):
