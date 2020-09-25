@@ -8,17 +8,17 @@ from src.metrics import *
 class TestStringMethods(unittest.TestCase):
 
     def test_get_confusion_matrix1(self):
-        seq = [1, 0, 1, 0]
-        ref = [1, 1, 0, 0]
+        seq = [1, 0, 1, 0, 0, 1, 1, 0, 0, 0]
+        ref = [1, 1, 0, 0, 0, 0, 0, 1, 1, 1]
         cmatrix = get_confusion_matrix1(seq, ref)
-        expected = dict([("TP", 1), ("TN", 1), ("FP", 1), ("FN", 1)])
+        expected = dict([("TP", 1), ("TN", 2), ("FP", 3), ("FN", 4)])
         return self.assertEqual(cmatrix,expected)
 
     def test_get_confusion_matrix2(self):
-        seq = [[1, 0, 1, 0], [1, 0, 1, 0], [1, 0, 1, 0]]
-        ref = [[1, 1, 0, 0], [1, 1, 0, 0], [1, 1, 0, 0]]
+        seq = [[1, 0, 1, 0, 0, 1, 1, 0, 0, 0], [1, 0, 1, 0, 0, 1, 1, 0, 0, 0], [1, 0, 1, 0, 0, 1, 1, 0, 0, 0]]
+        ref = [[1, 1, 0, 0, 0, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 0, 0, 1, 1, 1], [1, 1, 0, 0, 0, 0, 0, 1, 1, 1]]
         cmatrix = get_confusion_matrix2(seq, ref)
-        expected = dict([("TP", 3), ("TN", 3), ("FP", 3), ("FN", 3)])
+        expected = dict([("TP", 3), ("TN", 6), ("FP", 9), ("FN", 12)])
         return self.assertEqual(cmatrix, expected)
 
     def test_get_accuracy(self):
@@ -90,4 +90,18 @@ class TestStringMethods(unittest.TestCase):
         expectedF1 = (1 + 0.5 ** 2) * ((actualPrecision * actualSensitivity) / (0.5 ** 2 * actualPrecision + actualSensitivity))
         self.assertEqual(actualF1, expectedF1)
         return
+
+    def test_wiki_get_confusion_matrix1(self):
+        seq = [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]
+        ref = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
+        cmatrix = get_confusion_matrix1(seq, ref)
+        expected = dict([("TP", 5), ("TN", 3), ("FP", 2), ("FN", 3)])
+        return self.assertEqual(cmatrix, expected)
+
+    def test_wiki_get_confusion_matrix2(self):
+        seq = [[0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1] , [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1], [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]]
+        ref = [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0] , [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1], [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]]
+        cmatrix = get_confusion_matrix2(seq, ref)
+        expected = dict([("TP", 15), ("TN", 9), ("FP", 6), ("FN", 9)])
+        return self.assertEqual(cmatrix, expected)
 
