@@ -1,14 +1,19 @@
+import math
 """Functions to calculate metrics for evaluating the performance of classifers."""
-
 
 def get_confusion_matrix1(seq, ref):
     """Return 2x2 confusion matrix for a single sequence.
+
+    Assume inputs are well-formed: (perhaps method to do this check is necessary)
+    -seq and ref are same length
+    -both contain only 0 and 1: 0 represents not disordered, 1 represents disorded
+    -non-null or empty inputs
 
     Parameters
     ----------
         seq : list
             Predicted labels for each residue, ordered as in the original
-            sequence.
+            sequence. Let's assume 0 = not disordered, 1 = disordered.
         ref : list
             Actual labels for each residue, ordered as in the original sequence.
 
@@ -18,6 +23,7 @@ def get_confusion_matrix1(seq, ref):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
+
     TP, FP, TN, FN = 0, 0, 0, 0
 
     for s in seq:
@@ -43,6 +49,7 @@ def get_confusion_matrix1(seq, ref):
     return conf_mat_dict
 
 
+
 def get_confusion_matrix2(seqlist, reflist):
     """Return 2x2 confusion matrix for a list of sequences.
 
@@ -61,6 +68,7 @@ def get_confusion_matrix2(seqlist, reflist):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
+
     TP, FP, TN, FN = 0, 0, 0, 0
 
     for s in seqlist:
@@ -118,9 +126,31 @@ def get_MCC(cmatrix):
     denominator = ((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)) or 1
     return numerator / (denominator ** 0.5)
 
-def get_sensitivity(cmatrix):
-    pass
 
+def get_sensitivity(cmatrix):
+    """Returns sensitivity for a 2x2 confusion matrix
+       Parameters
+       ----------
+           cmatrix : dict
+               Counts for true positives, true negatives, false positives, and
+               false negatives, keyed by TP, TN, FP, and FN, respectively.
+       Returns
+       -------
+           sensitivity : float
+               Measures the proportion of positives that are correctly identified
+    """
+    return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FN"]))*100
 
 def get_specificity(cmatrix):
-    pass
+    """Returns sensitivity for a 2x2 confusion matrix
+       Parameters
+       ----------
+           cmatrix : dict
+               Counts for true positives, true negatives, false positives, and
+               false negatives, keyed by TP, TN, FP, and FN, respectively.
+       Returns
+       -------
+           specificity : float
+               Measures the proportion of negatives that are correctly identified
+    """
+    return (cmatrix["TN"]/(cmatrix["FP"] + cmatrix["TN"]))*100
