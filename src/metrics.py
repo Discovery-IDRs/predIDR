@@ -23,21 +23,30 @@ def get_confusion_matrix1(seq, ref):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
-    cmatrix = dict([("TP", 0),("TN", 0), ("FP",0), ("FN", 0) ])
-    i = 0
+
+    TP, FP, TN, FN = 0, 0, 0, 0
+
     for s in seq:
-        if seq[s] == 1:
-            if ref[i] == 1:
-                cmatrix["TP"] += 1
-            else: #assume ref[i] == 0:
-                cmatrix["FP"] += 1
-        else: #assume s == 0
-            if ref[i] == 1:
-                cmatrix["FN"] += 1
-            else: #assume ref[i] == 0:
-               cmatrix["TN"] += 1
-        i += 1
-    return cmatrix
+        for r in ref:
+            if s == 0:
+                if r == s:
+                    TN += 1
+                else:
+                    FP += 1
+            elif s == 1:
+                if r == s:
+                    TP += 1
+                else:
+                    FN += 1
+
+    conf_mat_dict = {
+        "TP": TP,
+        "FP": FP,
+        "TN": TN,
+        "FN": FN
+    }
+
+    return conf_mat_dict
 
 
 
@@ -59,22 +68,64 @@ def get_confusion_matrix2(seqlist, reflist):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
-    i = 0
-    cmatrix = dict([("TP", 0), ("TN", 0), ("FP", 0), ("FN", 0)])
+
+    TP, FP, TN, FN = 0, 0, 0, 0
+
     for s in seqlist:
-        newcmatrix = get_confusion_matrix1(s, reflist[i])
-        cmatrix["TP"] += newcmatrix["TP"]
-        cmatrix["TN"] += newcmatrix["TN"]
-        cmatrix["FP"] += newcmatrix["FP"]
-        cmatrix["FN"] += newcmatrix["FN"]
-        i+= 1
-    return cmatrix
+        for r in reflist:
+            dict = get_confusion_matrix1(s,r)
+            TP += dict.get("TP")
+            FP += dict.get("FP")
+            TN += dict.get("TN")
+            FN += dict.get("FN")
+
+    conf_mat_dict = {
+        "TP": TP,
+        "FP": FP,
+        "TN": TN,
+        "FN": FN
+    }
+
+    return conf_mat_dict
+
 
 def get_accuracy(cmatrix):
-    return (cmatrix["TP"] + cmatrix["TN"])/(cmatrix["TP"] + cmatrix["TN"]+ cmatrix["FP"] + cmatrix["FN"])
+    """Returns accuracy for a 2x2 confusion matrix.
+
+    Parameters
+    ----------
+        cmatrix : dict
+            Counts for true positives, true negatives, false positives, and
+            false negatives, keyed by TP, TN, FP, and FN, respectively.
+
+    Returns
+    -------
+        accuracy : float
+            Accuracy (frequency of correct classifications) from the cmatrix
+    """
+    return (cmatrix['TP'] + cmatrix['TN']) / sum(cmatrix.values())
+
 
 def get_MCC(cmatrix):
-    return ((cmatrix["TP"] * cmatrix["TN"]) - (cmatrix["FP"] * cmatrix["FN"])) / math.sqrt((cmatrix["TP"] + cmatrix["FP"]) * (cmatrix["TP"] + cmatrix["FN"]) * (cmatrix["TN"] + cmatrix["FP"]) * (cmatrix["TN"] + cmatrix["FN"]))
+    """Returns MCC (Matthews correlation coefficient) for a 2x2 confusion matrix
+
+    Parameters
+    ----------
+        cmatrix : dict
+            Counts for true positives, true negatives, false positives, and
+            false negatives, keyed by TP, TN, FP, and FN, respectively.
+
+    Returns
+    -------
+        mcc : float
+            MCC (decimal between -1 and +1) indicating the quality of binary
+            classifications from cmatrix
+    """
+    tp, tn, fp, fn = cmatrix['TP'], cmatrix['TN'], cmatrix['FP'], cmatrix['FN']
+    numerator = tp * tn - fp * fn
+    denominator = ((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)) or 1
+    return numerator / (denominator ** 0.5)
+
 
 def get_sensitivity(cmatrix):
     """Returns sensitivity for a 2x2 confusion matrix
