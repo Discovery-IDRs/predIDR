@@ -18,26 +18,26 @@ def get_confusion_matrix1(seq, ref):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
-    tp, fp, tn, fn = 0, 0, 0, 0
+    TP, FP, TN, FN = 0, 0, 0, 0
 
     for s in seq:
         for r in ref:
             if s == 0:
                 if r == s:
-                    tn += 1
+                    TN += 1
                 else:
-                    fp += 1
+                    FP += 1
             elif s == 1:
                 if r == s:
-                    tp += 1
+                    TP += 1
                 else:
-                    fn += 1
+                    FN += 1
 
     conf_mat_dict = {
-        "tp": tp,
-        "fp": fp,
-        "tn": tn,
-        "fn": fn
+        "TP": TP,
+        "FP": FP,
+        "TN": TN,
+        "FN": FN
     }
 
     return conf_mat_dict
@@ -61,21 +61,21 @@ def get_confusion_matrix2(seqlist, reflist):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
-    tp, fp, tn, fn = 0, 0, 0, 0
+    TP, FP, TN, FN = 0, 0, 0, 0
 
     for s in seqlist:
         for r in reflist:
             dict = get_confusion_matrix1(s,r)
-            tp += dict.get("tp")
-            fp += dict.get("fp")
-            tn += dict.get("tn")
-            fn += dict.get("fn")
+            TP += dict.get("TP")
+            FP += dict.get("FP")
+            TN += dict.get("TN")
+            FN += dict.get("FN")
 
     conf_mat_dict = {
-        "tp": tp,
-        "fp": fp,
-        "tn": tn,
-        "fn": fn
+        "TP": TP,
+        "FP": FP,
+        "TN": TN,
+        "FN": FN
     }
 
     return conf_mat_dict
