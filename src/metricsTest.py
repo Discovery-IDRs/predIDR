@@ -100,7 +100,7 @@ class TestStringMethods(unittest.TestCase):
 
     def test_wiki_get_confusion_matrix2(self):
         seq = [[0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1] , [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1], [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]]
-        ref = [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0] , [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1], [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]]
+        ref = [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0] , [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0] , [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]]
         cmatrix = get_confusion_matrix2(seq, ref)
         expected = dict([("TP", 15), ("TN", 9), ("FP", 6), ("FN", 9)])
         return self.assertEqual(cmatrix, expected)
