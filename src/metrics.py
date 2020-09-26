@@ -1,15 +1,8 @@
-import math
-
 """Functions to calculate metrics for evaluating the performance of classifers."""
 
 
 def get_confusion_matrix1(seq, ref):
     """Return 2x2 confusion matrix for a single sequence.
-
-    Assume inputs are well-formed: (perhaps method to do this check is necessary)
-    -seq and ref are same length
-    -both contain only 0 and 1: 0 represents not disordered, 1 represents disorded
-    -non-null or empty inputs
 
     Parameters
     ----------
@@ -25,6 +18,7 @@ def get_confusion_matrix1(seq, ref):
             Counts for true positives, true negatives, false positives, and
             false negatives, keyed by TP, TN, FP, and FN, respectively.
     """
+    check_inputs_valid(seq, ref)
 
     TP, FP, TN, FN = 0, 0, 0, 0
 
@@ -77,6 +71,7 @@ def get_confusion_matrix2(seqlist, reflist):
 
     for s in seqlist:
         r = reflist[ref_counter]
+        check_inputs_valid(s, r)
         dict = get_confusion_matrix1(s, r)
         TP += dict.get("TP")
         FP += dict.get("FP")
@@ -198,6 +193,9 @@ def get_f1(cmatrix, b):
     precision = get_precision(cmatrix)
     recall = get_sensitivity(cmatrix)
     return (1 + b ** 2) * ((precision * recall) / (b ** 2 * precision + recall))
+
+
+"""Helper Input-Checking Functions"""
 
 
 def check_inputs_valid(seq, ref):
