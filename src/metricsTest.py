@@ -153,3 +153,5 @@ class TestStringMethods(unittest.TestCase):
         self.assertTrue('Ref must only contain 1s and 0s' in str(context.exception))
 
         return
+
+    #TODO: integration test with invalid inputs
