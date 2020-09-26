@@ -142,16 +142,45 @@ class TestStringMethods(unittest.TestCase):
             check_inputs_valid(normalseq, emptyseq)
         self.assertTrue('Ref must be non-empty' in str(context.exception))
 
-        # case 6: seq input is non-binary
+        # case 5: seq input is non-binary
         with self.assertRaises(Exception) as context:
             check_inputs_valid(nonbinaryseq, normalseq)
         self.assertTrue('Seq must only contain 1s and 0s' in str(context.exception))
 
-        # case 7: ref input is non-binary
+        # case 6: ref input is non-binary
         with self.assertRaises(Exception) as context:
             check_inputs_valid(normalseq, nonbinaryseq)
         self.assertTrue('Ref must only contain 1s and 0s' in str(context.exception))
 
         return
 
-    #TODO: integration test with invalid inputs
+    def test_get_confusion_matrix1_invalid_inputs(self):
+        normalseq = [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]
+        nonbinaryseq = [0, 0, 0, 2, 1, 1, 1, 1, 0, 0, 0, 1, 1]
+        emptyseq = []
+        shortseq = [0, 0, 0, 1, 1, 1, 1, 1, 0, 0]
+
+        # case 1: inputs of different lengths
+        with self.assertRaises(Exception) as context:
+            get_confusion_matrix1(normalseq, shortseq)
+        self.assertTrue('Seq and ref must be the same length' in str(context.exception))
+
+        # case 2: seq input is empty
+        with self.assertRaises(Exception) as context:
+            get_confusion_matrix1(emptyseq, normalseq)
+        self.assertTrue('Seq must be non-empty' in str(context.exception))
+
+        # case 3: ref input is empty
+        with self.assertRaises(Exception) as context:
+            get_confusion_matrix1(normalseq, emptyseq)
+        self.assertTrue('Ref must be non-empty' in str(context.exception))
+
+        # case 4: seq input is non-binary
+        with self.assertRaises(Exception) as context:
+            get_confusion_matrix1(nonbinaryseq, normalseq)
+        self.assertTrue('Seq must only contain 1s and 0s' in str(context.exception))
+
+        # case 5: ref input is non-binary
+        with self.assertRaises(Exception) as context:
+            get_confusion_matrix1(normalseq, nonbinaryseq)
+        self.assertTrue('Ref must only contain 1s and 0s' in str(context.exception))
