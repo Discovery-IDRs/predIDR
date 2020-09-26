@@ -104,3 +104,53 @@ class TestStringMethods(unittest.TestCase):
         cmatrix = get_confusion_matrix2(seq, ref)
         expected = dict([("TP", 15), ("TN", 9), ("FP", 6), ("FN", 9)])
         return self.assertEqual(cmatrix, expected)
+
+    def test_check_binary(self):
+        seq = [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]
+        actual = check_binary(seq)
+        expected = True
+        self.assertEqual(actual, expected)
+
+        seq2 = [0, 0, 2, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]
+        actual2 = check_binary(seq2)
+        expected2 = False
+        self.assertEqual(actual2, expected2)
+        return
+
+    def test_check_inputs_valid(self):
+        normalseq = [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]
+        nonbinaryseq = [0, 0, 0, 2, 1, 1, 1, 1, 0, 0, 0, 1, 1]
+        emptyseq = []
+        shortseq = [0, 0, 0, 1, 1, 1, 1, 1, 0, 0]
+
+        # case 1: both inputs valid
+        actual1 = check_inputs_valid(normalseq, normalseq)
+        expected1 = True
+        self.assertEqual(actual1, expected1)
+
+        # case 2: inputs of different lengths
+        with self.assertRaises(Exception) as context:
+            check_inputs_valid(normalseq, shortseq)
+        self.assertTrue('Seq and ref must be the same length' in str(context.exception))
+
+        # case 3: seq input is empty
+        with self.assertRaises(Exception) as context:
+            check_inputs_valid(emptyseq, normalseq)
+        self.assertTrue('Seq must be non-empty' in str(context.exception))
+
+        # case 4: ref input is empty
+        with self.assertRaises(Exception) as context:
+            check_inputs_valid(normalseq, emptyseq)
+        self.assertTrue('Ref must be non-empty' in str(context.exception))
+
+        # case 6: seq input is non-binary
+        with self.assertRaises(Exception) as context:
+            check_inputs_valid(nonbinaryseq, normalseq)
+        self.assertTrue('Seq must only contain 1s and 0s' in str(context.exception))
+
+        # case 7: ref input is non-binary
+        with self.assertRaises(Exception) as context:
+            check_inputs_valid(normalseq, nonbinaryseq)
+        self.assertTrue('Ref must only contain 1s and 0s' in str(context.exception))
+
+        return

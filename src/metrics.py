@@ -239,8 +239,8 @@ def check_binary(vals):
              Returns True if vals only contain binary values, False otherwise
     """
     p = set(vals)
-    s = {'0', '1'}
-    if s == p or p == {'0'} or p == {'1'}:
+    s = {0, 1}
+    if s == p or p == {0} or p == {1}:
         return True
     else:
         return False
