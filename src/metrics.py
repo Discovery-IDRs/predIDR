@@ -1,5 +1,7 @@
 import math
+
 """Functions to calculate metrics for evaluating the performance of classifers."""
+
 
 def get_confusion_matrix1(seq, ref):
     """Return 2x2 confusion matrix for a single sequence.
@@ -75,7 +77,7 @@ def get_confusion_matrix2(seqlist, reflist):
 
     for s in seqlist:
         r = reflist[ref_counter]
-        dict = get_confusion_matrix1(s,r)
+        dict = get_confusion_matrix1(s, r)
         TP += dict.get("TP")
         FP += dict.get("FP")
         TN += dict.get("TN")
@@ -142,11 +144,11 @@ def get_sensitivity(cmatrix):
            sensitivity : float
                Measures the proportion of positives that are correctly identified
     """
-    return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FN"]))
+    return (cmatrix["TP"] / (cmatrix["TP"] + cmatrix["FN"]))
 
 
 def get_specificity(cmatrix):
-    """Returns sensitivity for a 2x2 confusion matrix
+    """Returns specificity for a 2x2 confusion matrix
        Parameters
        ----------
            cmatrix : dict
@@ -157,10 +159,11 @@ def get_specificity(cmatrix):
            specificity : float
                Measures the proportion of negatives that are correctly identified
     """
-    return (cmatrix["TN"]/(cmatrix["FP"] + cmatrix["TN"]))
+    return (cmatrix["TN"] / (cmatrix["FP"] + cmatrix["TN"]))
+
 
 def get_precision(cmatrix):
-    """Returns sensitivity for a 2x2 confusion matrix
+    """Returns precision for a 2x2 confusion matrix
        Parameters
        ----------
            cmatrix : dict
@@ -171,10 +174,11 @@ def get_precision(cmatrix):
            precision : float
                Measures how many selected items are relevant
     """
-    return (cmatrix["TP"]/(cmatrix["TP"] + cmatrix["FP"]))
+    return (cmatrix["TP"] / (cmatrix["TP"] + cmatrix["FP"]))
+
 
 def get_f1(cmatrix, b):
-    """Returns sensitivity for a 2x2 confusion matrix
+    """Returns F1 score for a 2x2 confusion matrix
        Parameters
        ----------
            cmatrix : dict
@@ -193,4 +197,50 @@ def get_f1(cmatrix, b):
 
     precision = get_precision(cmatrix)
     recall = get_sensitivity(cmatrix)
-    return (1 + b**2) * ((precision * recall) / (b**2 * precision + recall))
+    return (1 + b ** 2) * ((precision * recall) / (b ** 2 * precision + recall))
+
+
+def check_inputs_valid(seq, ref):
+    """Returns validity of input lists or raises Exception
+       Parameters
+       ----------
+        seq : list
+            Predicted labels for each residue, ordered as in the original
+            sequence. Let's assume 0 = not disordered, 1 = disordered.
+        ref : list
+            Actual labels for each residue, ordered as in the original sequence.
+       Returns
+       -------
+           isValid : bool
+             Returns True if seq and ref inputs are non-empty, the same length, and only contain binary values
+    """
+    if not seq:
+        raise Exception('Seq must be non-empty')
+    if not ref:
+        raise Exception('Ref must be non-empty')
+    if len(seq) != len(ref):
+        raise Exception('Seq and ref must be the same length')
+    if not check_binary(seq):
+        raise Exception('Seq must only contain 1s and 0s')
+    if not check_binary(ref):
+        raise Exception('Ref must only contain 1s and 0s')
+    return True
+
+
+def check_binary(vals):
+    """Returns whether all values in a list are binary
+       Parameters
+       ----------
+        vals: list
+            labels for each residue
+       Returns
+       -------
+           isBinary : bool
+             Returns True if vals only contain binary values, False otherwise
+    """
+    p = set(vals)
+    s = {'0', '1'}
+    if s == p or p == {'0'} or p == {'1'}:
+        return True
+    else:
+        return False

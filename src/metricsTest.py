@@ -104,4 +104,3 @@ class TestStringMethods(unittest.TestCase):
         cmatrix = get_confusion_matrix2(seq, ref)
         expected = dict([("TP", 15), ("TN", 9), ("FP", 6), ("FN", 9)])
         return self.assertEqual(cmatrix, expected)
-
