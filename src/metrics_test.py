@@ -1,17 +1,17 @@
+"""Functions to test metrics calculation."""
+
 import unittest
 import math
 from src.metrics import *
 
-"""Functions to test metrics calculation."""
 
-class TestStringMethods(unittest.TestCase):
-
+class TestMetrics(unittest.TestCase):
     def test_get_confusion_matrix1(self):
         seq = [1, 0, 1, 0, 0, 1, 1, 0, 0, 0]
         ref = [1, 1, 0, 0, 0, 0, 0, 1, 1, 1]
         cmatrix = get_confusion_matrix1(seq, ref)
         expected = dict([("TP", 1), ("TN", 2), ("FP", 3), ("FN", 4)])
-        return self.assertEqual(cmatrix,expected)
+        return self.assertEqual(cmatrix, expected)
 
     def test_get_confusion_matrix2(self):
         seq = [[1, 0, 1, 0, 0, 1, 1, 0, 0, 0], [1, 0, 1, 0, 0, 1, 1, 0, 0, 0], [1, 0, 1, 0, 0, 1, 1, 0, 0, 0]]
@@ -69,7 +69,7 @@ class TestStringMethods(unittest.TestCase):
         ref = [1, 1, 0, 0, 0, 0, 0, 1, 1, 1]
         cmatrix = get_confusion_matrix1(seq, ref)
         expected = dict([("TP", 1), ("TN", 2), ("FP", 3), ("FN", 4)])
-        self.assertEqual(cmatrix,expected)
+        self.assertEqual(cmatrix, expected)
         actualAccuracy = get_accuracy(cmatrix)
         expectedAccuracy = (1+2)/(1+2+3+4)
         self.assertEqual(actualAccuracy, expectedAccuracy)
@@ -98,9 +98,13 @@ class TestStringMethods(unittest.TestCase):
         return self.assertEqual(cmatrix, expected)
 
     def test_wiki_get_confusion_matrix2(self):
-        seq = [[0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1] , [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1], [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]]
-        ref = [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0] , [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0] , [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]]
-        cmatrix = get_confusion_matrix2(seq, ref)
+        seqlist = [[0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1],
+                   [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1],
+                   [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]]
+        reflist = [[1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                   [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                   [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]]
+        cmatrix = get_confusion_matrix2(seqlist, reflist)
         expected = dict([("TP", 15), ("TN", 9), ("FP", 6), ("FN", 9)])
         return self.assertEqual(cmatrix, expected)
 
@@ -152,7 +156,6 @@ class TestStringMethods(unittest.TestCase):
             check_inputs_valid(normalseq, nonbinaryseq)
         self.assertTrue('Ref must only contain 1s and 0s' in str(context.exception))
 
-        return
 
     def test_get_confusion_matrix1_invalid_inputs(self):
         normalseq = [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1]
@@ -184,3 +187,7 @@ class TestStringMethods(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             get_confusion_matrix1(normalseq, nonbinaryseq)
         self.assertTrue('Ref must only contain 1s and 0s' in str(context.exception))
+
+
+if __name__ == '__main__':
+    unittest.main()
