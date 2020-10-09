@@ -30,7 +30,7 @@ with open('out/disprot_2020_06.fasta', 'w') as file:
     for record in data:
         header = '|'.join([field + ':' + record[field] for field in fields]) + '\n'
         labels = get_labels(record)
-        labelstring = '\n'.join(labels[i:i + 80] for i in range(0, len(labels), 80))
+        labelstring = '\n'.join(labels[i:i + 80] for i in range(0, len(labels), 80)) + '\n'
         file.write('>' + header + labelstring)
 
 # Create FASTA file for each sequence
@@ -38,7 +38,7 @@ for record in data:
     disprot_id = record['disprot_id']
     header = '|'.join([field + ':' + record[field] for field in fields]) + '\n'
     labels = get_labels(record)
-    labelstring = '\n'.join(labels[i:i + 80] for i in range(0, len(labels), 80))
+    labelstring = '\n'.join(labels[i:i + 80] for i in range(0, len(labels), 80)) + '\n'
     with open(f'out/fastas/{disprot_id}.fasta', 'w') as file:
         file.write('>' + header + labelstring)
 
