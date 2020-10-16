@@ -10,8 +10,6 @@ import pandas as pd
 with open('../../../data/DisProt/JSON/DisProt.json') as file:
     data = json.load(file)['data']
 
-columns = ['length', 'disprot_id', 'released', 'disorder_content']
-
 # Extract relevant fields from DisProt
 rows = []
 for record in data:
@@ -24,7 +22,9 @@ for record in data:
     for region in record['disprot_consensus']['structural_state']:
         if region['type'] == 'D':
             num_regions += 1
-            num_residues += region['start'] - region['end'] + 1  # Add 1 since endpoints included
+            num_residues += region['end'] - region['start'] + 1  # Add 1 since endpoints included
+    row['num_regions'] = num_regions
+    row['num_residues'] = num_residues
     rows.append(row)
 df = pd.DataFrame(rows)
 
