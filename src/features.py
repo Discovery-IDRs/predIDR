@@ -1,6 +1,7 @@
 """Functions to calculate features associated with each amino acid in a protein sequence."""
 
 
+# Helper functions
 def get_window(seq, pos, window_size):
     """Return window of length window_size centered at position pos in seq.
 
@@ -111,5 +112,6 @@ def get_features(seq, features, window_size):
     return idx2label
 
 
+# Feature functions and feature dictionary
 features = {'fraction_AGP': lambda seq, window_size: get_X_fractions(seq, 'AGP', window_size),
             'fraction_?': lambda seq, window_size: get_X_fractions(seq, '?', window_size)}
