@@ -9,10 +9,7 @@ import seaborn as sns
 import collections, functools, operator
 
 # Use JSON module to load file
-"""
-@SAMMY - CHANGE THIS BEFORE YOU PUSH
-"""
-with open('/Users/sammywray/Desktop/IDR/DisProt.json') as file:
+with open('../../../data/DisProt/JSON/DisProt.json') as file:
     data = json.load(file)['data']
 
 def char_counter(string):
