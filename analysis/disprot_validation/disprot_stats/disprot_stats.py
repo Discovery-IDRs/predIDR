@@ -77,6 +77,71 @@ plt.ylabel('Number of DisProt entries')
 plt.savefig('out/bar_taxa.png')
 plt.close()
 
+#Distribution of number of residues and protein length
+with_outliers_residues = plt.hist(df.num_residues, ec='white')
+plt.xlabel("Number of Residues")
+plt.ylabel("Number of Disprot Entries")
+plt.title("Number of Residues for Disprot Entries")
+plt.savefig('out/len_res.png')
+plt.close()
+
+#Distribution of Number of Residues without Outliers
+outliers = df[df['num_residues']>1500]
+plt.hist(df.num_residues,range = [0,1500], ec='white')
+plt.xlabel("Number of Residues")
+plt.ylabel("Number of Disprot Entries")
+plt.title("Number of Residues for Disprot Entries")
+plt.savefig('out/len_out.png')
+plt.close()
+
+#Distribution of Disprot Entry Lengths
+plt.hist(df.length, range = [0,4500], ec='white')
+outliers = df[df['length']>4500]
+plt.xlabel("Length")
+plt.ylabel("Number of Disprot Entries")
+plt.title("Length of Disprot Entries")
+plt.savefig('out/length.png')
+plt.close()
+
+#Distribution of Disorder Content
+plt.hist(df.disorder_content, ec='white')
+plt.ylabel('Number of DisProt entries')
+plt.xlabel("Disorder Content")
+plt.title('Distribution of Disorder Content')
+plt.savefig('out/dis_dist.png')
+plt.close()
+
+#Distribution of Length of Disordered Regions
+#Disordered Length = Disordered Content * Total Length
+df["length_of_disordered_regions"] = df.disorder_content * df.length
+a = plt.hist(df.length_of_disordered_regions, ec='white')
+plt.ylabel('Number of DisProt entries')
+plt.xlabel("Length of Disordered Regions")
+plt.title('Distribution of Length of Disordered Regions')
+plt.savefig('out/dis_hist.png')
+plt.close()
+
+#Disordered Region Length Vs. Overall Length
+#Is there an association between protein length and disordered content?
+outliers_removed = df[df["length"] < 5000]
+outliers_removed
+colors = {'Eukaryota':'red', 'Bacteria':'green', 'Viruses':'blue', 'Archea':'yellow'}
+outliers_removed.plot.scatter(x='length', y = 'length_of_disordered_regions')
+# try 1) white lines 2) slightly transparent?
+plt.xlabel("Length")
+plt.ylabel("Total Length of Disordered Regions")
+plt.title('Disordered Region Length vs Total Length')
+plt.savefig('out/len_comp.png')
+plt.close()
+
+#Distribution of the number of Disordered Regions
+plt.hist(df.num_regions, ec='white')
+plt.xlabel("Number of Regions")
+plt.ylabel('Number of DisProt entries')
+plt.title('Distribution of the Number of Regions')
+plt.savefig('out/num_reg.png')
+plt.close()
+
 # Violinplot of length by taxonomic origin
 df_less_outliers = df[df['num_residues'] < 1000]
 sns.violinplot(x='taxonomy', y='num_residues', data=df_less_outliers, palette='Set2')
