@@ -88,6 +88,74 @@ def get_X_fractions(seq, X, window_size):
         X_fractions.append(X_count / len(window))
     return X_fractions
 
+def get_repeat_count(seq):
+    """Return count of symbols in seq which appear two or more times in a row.
+
+    Parameters
+    ----------
+        seq : string
+            Protein sequence as string.
+
+    Returns
+    -------
+        repeat_count : int
+            Count of repeat symbols in seq.
+    """
+    repeat_count = 0
+
+    if len(seq) <= 1:
+        return 0
+    else:
+        pass
+
+    if seq[0] == seq[1]:
+        repeat_count += 1
+    else:
+        pass
+
+    if seq[len(seq) - 1] == seq[len(seq) - 2]:
+        repeat_count += 1
+    else:
+        pass
+
+    if len(seq) > 2:
+        for i in range(1, len(seq) - 1):
+            if seq[i] == seq[i-1]:
+                repeat_count += 1
+            elif seq[i] == seq[i+1]:
+                repeat_count += 1
+            else:
+                pass
+    else:
+        pass
+
+    return repeat_count
+
+def get_repeat_fractions(seq, window_size):
+    """Return fractions of symbols in sliding window across seq which appear two or more times in a row.
+
+    Parameters
+    ----------
+        seq : string
+            Protein sequence as string.
+        window_size : int
+            Total number of symbols in window, including the center
+            symbol. Must be an odd number.
+
+    Returns
+    -------
+        repeat_fractions : list
+            Fractions of symbols in sliding window across seq which appear two or more times in a row.
+    """
+
+    repeat_fractions = []
+
+    for i in range(len(seq)):
+        window = get_window(seq, i, window_size)
+        repeat_count = get_repeat_count(window)
+        repeat_fractions.append(repeat_count / len(window))
+
+    return repeat_fractions
 
 def get_regex_count(seq, regex):
     """Return count of patterns matching regex in seq."""
@@ -113,5 +181,29 @@ def get_features(seq, features, window_size):
 
 
 # Feature functions and feature dictionary
-features = {'fraction_AGP': lambda seq, window_size: get_X_fractions(seq, 'AGP', window_size),
+features = features = {'fraction_AGP': lambda seq, window_size: get_X_fractions(seq, 'AGP', window_size),
+            'fraction_SEG': lambda seq, window_size: get_X_fractions(seq, 'SEG', window_size),
+            'fraction_pos_charge': lambda seq, window_size: get_X_fractions(seq, 'KRH', window_size),
+            'fraction_neg_charge': lambda seq, window_size: get_X_fractions(seq, 'DE', window_size),
+            'fraction_repeat': get_repeat_fractions(seq, window_size),
+            'fraction_G': lambda seq, window_size: get_X_fractions(seq, 'G', window_size),
+            'fraction_A': lambda seq, window_size: get_X_fractions(seq, 'A', window_size),
+            'fraction_V': lambda seq, window_size: get_X_fractions(seq, 'V', window_size),
+            'fraction_L': lambda seq, window_size: get_X_fractions(seq, 'L', window_size),
+            'fraction_I': lambda seq, window_size: get_X_fractions(seq, 'I', window_size),
+            'fraction_M': lambda seq, window_size: get_X_fractions(seq, 'M', window_size),
+            'fraction_F': lambda seq, window_size: get_X_fractions(seq, 'F', window_size),
+            'fraction_W': lambda seq, window_size: get_X_fractions(seq, 'W', window_size),
+            'fraction_P': lambda seq, window_size: get_X_fractions(seq, 'P', window_size),
+            'fraction_S': lambda seq, window_size: get_X_fractions(seq, 'S', window_size),
+            'fraction_T': lambda seq, window_size: get_X_fractions(seq, 'T', window_size),
+            'fraction_C': lambda seq, window_size: get_X_fractions(seq, 'C', window_size),
+            'fraction_Y': lambda seq, window_size: get_X_fractions(seq, 'Y', window_size),
+            'fraction_N': lambda seq, window_size: get_X_fractions(seq, 'N', window_size),
+            'fraction_Q': lambda seq, window_size: get_X_fractions(seq, 'Q', window_size),
+            'fraction_D': lambda seq, window_size: get_X_fractions(seq, 'D', window_size),
+            'fraction_E': lambda seq, window_size: get_X_fractions(seq, 'E', window_size),
+            'fraction_K': lambda seq, window_size: get_X_fractions(seq, 'K', window_size),
+            'fraction_R': lambda seq, window_size: get_X_fractions(seq, 'R', window_size),
+            'fraction_H': lambda seq, window_size: get_X_fractions(seq, 'H', window_size),
             'fraction_?': lambda seq, window_size: get_X_fractions(seq, '?', window_size)}
