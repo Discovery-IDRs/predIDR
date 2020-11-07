@@ -120,6 +120,8 @@ def get_MCC(cmatrix):
     TP, TN, FP, FN = cmatrix["TP"], cmatrix["TN"], cmatrix["FP"], cmatrix["FN"]
     numerator = TP * TN - FP * FN
     denominator = ((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN)) or 1
+    if denominator == 0:
+        return float("NaN")
     return numerator / (denominator ** 0.5)
 
 
@@ -137,7 +139,11 @@ def get_sensitivity(cmatrix):
            sensitivity : float
                Measures the proportion of positives that are correctly identified.
     """
-    return cmatrix["TP"] / (cmatrix["TP"] + cmatrix["FN"])
+    numerator = cmatrix["TP"]
+    denominator = (cmatrix["TP"] + cmatrix["FN"])
+    if denominator == 0:
+        return float("NaN")
+    return numerator/denominator
 
 
 def get_specificity(cmatrix):
@@ -153,7 +159,11 @@ def get_specificity(cmatrix):
            specificity : float
                Measures the proportion of negatives that are correctly identified.
     """
-    return cmatrix["TN"] / (cmatrix["FP"] + cmatrix["TN"])
+    numerator = cmatrix["TN"]
+    denominator = (cmatrix["FP"] + cmatrix["TN"])
+    if denominator == 0:
+        return float("NaN")
+    return numerator/denominator
 
 
 def get_precision(cmatrix):
@@ -170,10 +180,14 @@ def get_precision(cmatrix):
            precision : float
                Measures how many selected items are relevant.
     """
-    return cmatrix["TP"] / (cmatrix["TP"] + cmatrix["FP"])
+    numerator = cmatrix["TP"]
+    denominator = (cmatrix["TP"] + cmatrix["FP"])
+    if denominator == 0:
+        return float("NaN")
+    return numerator/denominator
 
 
-def get_f1(cmatrix, b):
+def get_f1(cmatrix, b=1):
     """Returns F1 score for a 2x2 confusion matrix.
 
        Parameters
@@ -183,17 +197,21 @@ def get_f1(cmatrix, b):
                false negatives, keyed by TP, TN, FP, and FN, respectively.
            b : float
                A postive, real factor such that recall (sensitivity) is
-               considered b times as important as precision.
+               considered b times as important as precision. Default value
+               is 1 for F1 score. Fb score can be calculated with other b.
 
        Returns
        -------
            f1 : float
                A value between 0 and 1 that measures a classifier's accuracy
-               and is calculated as the harmonic mean of precision and recall
+               and is calculated as the harmonic mean of precision and recall.
     """
     precision = get_precision(cmatrix)
     recall = get_sensitivity(cmatrix)
-    return (1 + b ** 2) * ((precision * recall) / (b ** 2 * precision + recall))
+    denominator = (b ** 2 * precision + recall)
+    if denominator == 0:
+        return float("NaN")
+    return (1 + b ** 2) * ((precision * recall) / denominator)
 
 
 """Helper Input-Checking Functions"""

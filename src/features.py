@@ -1,5 +1,6 @@
 """Functions to calculate features associated with each amino acid in a protein sequence."""
 
+import re
 
 # Helper functions
 def get_window(seq, pos, window_size):
@@ -91,12 +92,18 @@ def get_X_fractions(seq, X, window_size):
 
 def get_regex_count(seq, regex):
     """Return count of patterns matching regex in seq."""
-    pass
+    pattern = re.compile(regex)
+    count = pattern.findall(seq)
+    return len(count)
 
 
 def get_regex_fractions(seq, regex, window):
     """Return fractions of patterns matching X in sliding window across seq."""
-    pass
+    if get_regex_count(seq,regex) == 0:
+        return float("NaN")
+    fraction = get_regex_count(window,regex)/get_regex_count(seq,regex)
+    return fraction
+
 
 
 # TODO: Not all features will necessarily accept a window_size parameter, so we may need to rework this
