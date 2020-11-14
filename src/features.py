@@ -157,6 +157,97 @@ def get_repeat_fractions(seq, window_size):
 
     return repeat_fractions
 
+def get_pair_repeat_count(seq, XY):
+    """Return count of pair symbols contained in XY
+    in seq which appear two or more times in a row.
+
+    Parameters
+    ----------
+        seq : string
+            Protein sequence as string.
+        XY : string or list
+            Pair symbols to count for repeats.
+            Must contain at least two symbols.
+
+    Returns
+    -------
+        pair_repeat_count : int
+            Count of repeat pair symbols in seq.
+    """
+
+    if len(XY) < 2:
+        raise ValueError('Requires at least two symbols.')
+
+    pair_repeat_count = 0
+
+    if len(seq) <= 1:
+        return 0
+    else:
+        pass
+
+    if seq[0] in XY:
+        if seq[1] in XY:
+            pair_repeat_count += 1
+        else:
+            pass
+    else:
+        pass
+
+    if seq[len(seq) - 1] in XY:
+        if seq[len(seq) - 2] in XY:
+            pair_repeat_count += 1
+        else:
+            pass
+    else:
+        pass
+
+    if len(seq) > 2:
+        for i in range(1, len(seq) - 1):
+            if seq[i] in XY:
+                if seq[i-1] in XY:
+                    pair_repeat_count += 1
+                elif seq[i+1] in XY:
+                    pair_repeat_count += 1
+                else:
+                    pass
+            else:
+                pass
+    else:
+        pass
+
+    return pair_repeat_count
+
+def get_pair_repeat_fractions(seq, XY, window_size):
+    """Return fractions of pair symbols contained in XY in sliding
+    window across seq which appear two or more times in a row.
+
+    Parameters
+    ----------
+        seq : string
+            Protein sequence as string.
+        XY : string or list
+            Pair symbols to count for repeats.
+            Must contain at least two symbols.
+        window_size : int
+            Total number of symbols in window, including the center
+            symbol. Must be an odd number.
+
+    Returns
+    -------
+        pair_repeat_fractions : list
+            Fractions of pair symbols in sliding window across
+            seq which appear two or more times in a row.
+    """
+
+    pair_repeat_fractions = []
+
+    for i in range(len(seq)):
+        window = get_window(seq, i, window_size)
+        pair_repeat_count = get_pair_repeat_count(window, XY)
+        pair_repeat_fractions.append(pair_repeat_count / len(window))
+
+    return pair_repeat_fractions
+
 def get_regex_count(seq, regex):
     """Return count of patterns matching regex in seq."""
     pass
@@ -181,11 +272,18 @@ def get_features(seq, features, window_size):
 
 
 # Feature functions and feature dictionary
-features = features = {'fraction_AGP': lambda seq, window_size: get_X_fractions(seq, 'AGP', window_size),
+features = {'fraction_AGP': lambda seq, window_size: get_X_fractions(seq, 'AGP', window_size),
             'fraction_SEG': lambda seq, window_size: get_X_fractions(seq, 'SEG', window_size),
             'fraction_pos_charge': lambda seq, window_size: get_X_fractions(seq, 'KRH', window_size),
             'fraction_neg_charge': lambda seq, window_size: get_X_fractions(seq, 'DE', window_size),
-            'fraction_repeat': get_repeat_fractions(seq, window_size),
+            'fraction_repeat': lambda seq, window_size: get_repeat_fractions(seq, window_size),
+            'fraction_QN_repeat': lambda seq, window_size: get_pair_repeat_fractions(seq, 'QN', window_size),
+            'fraction_RG_repeat': lambda seq, window_size: get_pair_repeat_fractions(seq, 'RG', window_size),
+            'fraction_FG_repeat': lambda seq, window_size: get_pair_repeat_fractions(seq, 'FG', window_size),
+            'fraction_SG_repeat': lambda seq, window_size: get_pair_repeat_fractions(seq, 'SG', window_size),
+            'fraction_SR_repeat': lambda seq, window_size: get_pair_repeat_fractions(seq, 'SR', window_size),
+            'fraction_KAP_repeat': lambda seq, window_size: get_pair_repeat_fractions(seq, 'KAP', window_size),
+            'fraction_PTS_repeat': lambda seq, window_size: get_pair_repeat_fractions(seq, 'PTS', window_size),
             'fraction_G': lambda seq, window_size: get_X_fractions(seq, 'G', window_size),
             'fraction_A': lambda seq, window_size: get_X_fractions(seq, 'A', window_size),
             'fraction_V': lambda seq, window_size: get_X_fractions(seq, 'V', window_size),
