@@ -312,3 +312,36 @@ features = {'fraction_AGP': lambda seq, window_size: get_X_fractions(seq, 'AGP',
             'fraction_R': lambda seq, window_size: get_X_fractions(seq, 'R', window_size),
             'fraction_H': lambda seq, window_size: get_X_fractions(seq, 'H', window_size),
             'fraction_?': lambda seq, window_size: get_X_fractions(seq, '?', window_size)}
+#the reference dictionary for isoelectric point (average pka)
+AA_PI_value = {"G": 5.97, "A":6, "V": 5.96, "L":5.98, "I":6.02, "M": 5.74, "P": 6.30, "F":5.48, 
+              "W":5.89, "N":5.41, "Q":5.65, "S":5.68, "T":5.60, "Y":5.66, "C": 5.07, "D": 2.77, 
+               "E":3.22, "K":9.74, "R":10.76, "H": 7.59}
+
+#assigned binary values based on the acidity/basicity of side chains
+AA_Acid= {'D':1, 'E':1, 'K':0, 'R':0, 'H':0, 'G': 0, 'A':0, 'V':0, 'I':0, 'W':0, 'F':0, 'P':0, 'M':0, 
+                            'L':0, 'S':0, 'T':0, 'Y':0, 'N':0, 
+                            'Q':0, 'C':0}
+AA_Basic= {'D':0, 'E':0, 'K':1, 'R':1, 'H':1, 'G': 0, 'A':0, 'V':0, 'I':0, 'W':0, 'F':0, 'P':0, 'M':0, 
+                            'L':0, 'S':0, 'T':0, 'Y':0, 'N':0, 
+                            'Q':0, 'C':0}
+
+
+def AA_Score(seq, ref, window_size):
+    """computes a list of average scores based on a reference dictionary"""
+    scores = []
+    sequences = []
+    for i in list(range(0, len(seq),window_size)):
+        target_seq = get_window(seq, i, window_size)
+        sequences.append([target_seq])
+    for window in sequences:
+        score = 0
+        window = [a for a in window[0]]
+        for aa in window:
+            score += ref.get(aa)
+        scores.append(score)
+    return scores
+
+features = {'acid_content': lambda seq, window_size: AA_Score(seq, AA_Acid, window_size),
+            'basic_content':lambda seq, window_size: AA_Score(seq, AA_Basic, window_size),
+            'isoelectric point': lambda seq, window_size: AA_Score(seq, AA_PI_value, window_size)
+            }
