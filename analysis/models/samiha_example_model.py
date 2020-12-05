@@ -1,9 +1,17 @@
 # first neural network with keras make predictions
+
 from numpy import loadtxt
+import pandas as pd
+import numpy as np
+from nump import loadtxt
 from keras.models import Sequential
 from keras.layers import Dense
 # load the dataset
-dataset = loadtxt('pima-indians-diabetes.csv', delimiter=',')
+data = np.loadtxt('disprot_features.tsv', skiprows=1, usecols=list(range(2, 41)))
+labels = data[:, 0]
+features = data[:, 1:]
+
+#dataset = loadtxt('pima-indians-diabetes.csv', delimiter=',')
 # split into input (X) and output (y) variables
 X = dataset[:,0:8]
 y = dataset[:,8]
