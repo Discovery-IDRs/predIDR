@@ -1,3 +1,9 @@
+import seaborn as sns
+import matplotlib
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import *
+
 """Functions to calculate metrics for evaluating the performance of classifiers."""
 
 
@@ -146,72 +152,61 @@ def get_sensitivity(cmatrix):
     return numerator/denominator
 
 
-def get_specificity(cmatrix):
-    """Returns specificity for a 2x2 confusion matrix.
-
-       Parameters
-       ----------
-           cmatrix : dict
-               Counts for true positives, true negatives, false positives, and
-               false negatives, keyed by TP, TN, FP, and FN, respectively.
-       Returns
-       -------
-           specificity : float
-               Measures the proportion of negatives that are correctly identified.
-    """
-    numerator = cmatrix["TN"]
-    denominator = (cmatrix["FP"] + cmatrix["TN"])
-    if denominator == 0:
-        return float("NaN")
-    return numerator/denominator
+def get_specificity(y_true, y_pred_bin):
+    """Returns specificity (true negative rate) for binary classification."""
+    cm = confusion_matrix(y_true, y_pred_bin) # exchange for our cm func later
+    tn, fp, fn, tp = confusion_matrix([0, 1, 0, 1], [1, 1, 1, 0]).ravel()
+    return tn / (tn + fp)
 
 
-def get_precision(cmatrix):
-    """Returns precision for a 2x2 confusion matrix.
-
-       Parameters
-       ----------
-           cmatrix : dict
-               Counts for true positives, true negatives, false positives, and
-               false negatives, keyed by TP, TN, FP, and FN, respectively.
-
-       Returns
-       -------
-           precision : float
-               Measures how many selected items are relevant.
-    """
-    numerator = cmatrix["TP"]
-    denominator = (cmatrix["TP"] + cmatrix["FP"])
-    if denominator == 0:
-        return float("NaN")
-    return numerator/denominator
+def get_precision(y_true, y_pred_bin):
+    """Returns precision for binary classification."""
+    return precision_score(y_true, y_pred_bin, zero_division=0)
 
 
-def get_f1(cmatrix, b=1):
-    """Returns F1 score for a 2x2 confusion matrix.
+def get_f1(y_true, y_pred_bin):
+    """Returns f1 score for binary classification."""
+    return f1_score(y_true, y_pred_bin, zero_division=0)
 
-       Parameters
-       ----------
-           cmatrix : dict
-               Counts for true positives, true negatives, false positives, and
-               false negatives, keyed by TP, TN, FP, and FN, respectively.
-           b : float
-               A postive, real factor such that recall (sensitivity) is
-               considered b times as important as precision. Default value
-               is 1 for F1 score. Fb score can be calculated with other b.
 
-       Returns
-       -------
-           f1 : float
-               A value between 0 and 1 that measures a classifier's accuracy
-               and is calculated as the harmonic mean of precision and recall.
-    """
-    precision = get_precision(cmatrix)
-    recall = get_sensitivity(cmatrix)
-    denominator = (b ** 2 * precision + recall)
-    if denominator == 0:
-        return float("NaN")
-    return (1 + b ** 2) * ((precision * recall) / denominator)
+def get_AUC(y_true, y_pred_dec):
+    """Returns AUC for decimal classification."""
+    return roc_auc_score(y_true, y_pred_dec)
+
+
+def get_cross_entropy(y_true, y_pred_dec):
+    """Returns cross entropy (log loss) for decimal predictions."""
+    return log_loss(y_true, y_pred_dec)
+
+
+"""Functions to create visualizations"""
+
+
+def get_ROC(y_true, y_pred_dec):
+    """Saves ROC curve graph for decimal classification."""
+    if not os.path.exists('out_metrics_rewritten/'):
+        os.mkdir('out_metrics_rewritten/')
+
+    fp_rate, tp_rate, threshold = roc_curve(y_true, y_pred_dec)
+    plt.plot(fp_rate, tp_rate)
+    plt.title('ROC Curve');
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.savefig('out_metrics_rewritten/roc_plot.png')
+    plt.close()
+
+
+def get_cm_heatmap(y_true, y_pred_bin):
+    """Saves confusion matrix heatmap for binary classification."""
+    if not os.path.exists('out_metrics_rewritten/'):
+        os.mkdir('out_metrics_rewritten/')
+
+    cm = confusion_matrix(y_true, y_pred_bin)
+    sns.heatmap(cm, annot=True, fmt = 'd', cmap = 'Blues', annot_kws = {'size': 16})
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual');
+    plt.savefig('out_metrics_rewritten/cm_plot.png')
+    plt.close()
 
 
 """Helper Input-Checking Functions"""
@@ -265,3 +260,30 @@ def check_binary(vals):
         return True
     else:
         return False
+
+
+"""Draft of Pipeline"""
+
+
+def get_metrics(y_true, y_pred, visual=False):
+    """Return all possible metrics given predicted classification."""
+    if check_binary(y_pred):
+        get_binary_metrics(y_true, y_pred)
+    else:
+        y_pred_bin = [round(val) for val in y_pred]
+        get_binary_metrics(y_true, y_pred_bin)
+        get_decimal_metrics(y_true, y_pred)
+        if visual:
+            get_visualizations(y_true, y_pred_bin, y_pred)
+
+def get_binary_metrics(y_true, y_pred_bin):
+    """Return metrics with binary classification."""
+    return
+
+def get_decimal_metrics()y_true, y_pred:
+    """Return metrics with decimal classification."""
+    return
+
+def get_visualizations(y_true, y_pred_bin, y_pred_dec):
+    """Return visualizations for binary and decimal classifications"""
+    return
