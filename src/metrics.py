@@ -22,7 +22,7 @@ def get_confusion_matrix2(y_true_list, y_pred_bin_list):
     cm = confusion_matrix(y_true, y_pred_bin)
     return cm
 
-def get_accuracy(y_true, y_pred_bin)):
+def get_accuracy(y_true, y_pred_bin):
     """Returns accuracy for a 2x2 confusion matrix."""
     return accuracy_score(y_true, y_pred_bin)
 
@@ -30,7 +30,7 @@ def get_MCC(y_true, y_pred_bin):
     """Returns MCC (Matthews correlation coefficient) for a 2x2 confusion matrix."""
     return matthews_corrcoef(y_true, y_pred_bin)
 
-def get_sensitivity(cmatrix):
+def get_sensitivity(y_true, y_pred_bin):
     """Returns sensitivity for a 2x2 confusion matrix."""
     return recall_score(y_true, y_pred_bin)
 
@@ -156,13 +156,24 @@ def get_metrics(y_true, y_pred, visual=False):
 
 def get_binary_metrics(y_true, y_pred_bin):
     """Return metrics with binary classification."""
-
-    return
+    d = {'Accuracy': get_accuracy(y_true, y_pred_bin), 
+        'MCC': get_MCC(y_true, y_pred_bin),
+        'Sensitivity': get_sensitivity(y_true, y_pred_bin),
+        'Specificity': get_specificity(y_true, y_pred_bin),
+        'Precision': get_precision(y_true, y_pred_bin),
+        'F1': get_f1(y_true, y_pred_bin)}
+    binary_metrics_df = pd.DataFrame(data=d)
+    return binary_metrics_df 
 
 def get_decimal_metrics(y_true, y_pred):
     """Return metrics with decimal classification."""
+    d = {'AUC': get_AUC(y_true, y_pred_dec), 
+        'Cross Entropy': get_cross_entropy(y_true, y_pred_dec)}
+    decimal_metrics_df = pd.DataFrame(data=d)
     return
 
 def get_visualizations(y_true, y_pred_bin, y_pred_dec):
     """Return visualizations for binary and decimal classifications"""
+    get_ROC(y_true, y_pred_dec)
+    get_cm_heatmap(y_true, y_pred_bin):
     return
