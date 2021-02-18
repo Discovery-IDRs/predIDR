@@ -67,7 +67,7 @@ def get_ROC(y_true, y_pred_dec):
 
     fp_rate, tp_rate, threshold = roc_curve(y_true, y_pred_dec)
     plt.plot(fp_rate, tp_rate)
-    plt.title('ROC Curve');
+    plt.title('ROC Curve')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.savefig('out_metrics_rewritten/roc_plot.png')
@@ -170,7 +170,7 @@ def get_decimal_metrics(y_true, y_pred):
     d = {'AUC': get_AUC(y_true, y_pred_dec), 
         'Cross Entropy': get_cross_entropy(y_true, y_pred_dec)}
     decimal_metrics_df = pd.DataFrame(data=d)
-    return
+    return decimal_metrics_df
 
 def get_visualizations(y_true, y_pred_bin, y_pred_dec):
     """Return visualizations for binary and decimal classifications"""
