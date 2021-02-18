@@ -156,18 +156,20 @@ def get_metrics(y_true, y_pred, visual=False):
 
 def get_binary_metrics(y_true, y_pred_bin):
     """Return metrics with binary classification."""
-    print("Accuracy: " + str(get_accuracy(y_true, y_pred_bin)))
-    print("MCC: " + str(get_MCC(y_true, y_pred_bin)))
-    print("Sensitivity/Recall: " + str(get_sensitivity(y_true, y_pred_bin)))
-    print("Specificity: " + str(get_specificity(y_true, y_pred_bin)))
-    print("Precision: " + str(get_precision(y_true, y_pred_bin)))
-    print("F1: " + str(get_f1(y_true, y_pred_bin)))
-    return
+    d = {'Accuracy': get_accuracy(y_true, y_pred_bin), 
+        'MCC': get_MCC(y_true, y_pred_bin),
+        'Sensitivity': get_sensitivity(y_true, y_pred_bin),
+        'Specificity': get_specificity(y_true, y_pred_bin),
+        'Precision': get_precision(y_true, y_pred_bin),
+        'F1': get_f1(y_true, y_pred_bin)}
+    binary_metrics_df = pd.DataFrame(data=d)
+    return binary_metrics_df 
 
 def get_decimal_metrics(y_true, y_pred):
     """Return metrics with decimal classification."""
-    print("AUC: " + str(get_AUC(y_true, y_pred_dec)))
-    print ("Cross Entropy: " + str(get_cross_entropy(y_true, y_pred_dec)))
+    d = {'AUC': get_AUC(y_true, y_pred_dec), 
+        'Cross Entropy': get_cross_entropy(y_true, y_pred_dec)}
+    decimal_metrics_df = pd.DataFrame(data=d)
     return
 
 def get_visualizations(y_true, y_pred_bin, y_pred_dec):
