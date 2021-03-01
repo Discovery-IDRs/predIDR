@@ -141,7 +141,8 @@ def check_binary(vals):
 
 
 """Draft of Pipeline"""
-
+def main():
+    # 
 
 def get_metrics(y_true, y_pred, visual=False):
     """Return all possible metrics given predicted classification."""
@@ -163,8 +164,8 @@ def get_binary_metrics(y_true, y_pred_bin):
         'Precision': get_precision(y_true, y_pred_bin),
         'F1': get_f1(y_true, y_pred_bin)}
     binary_metrics_df = pd.DataFrame(data=d)
-    return binary_metrics_df 
-
+    return binarymetrics_df
+    
 def get_decimal_metrics(y_true, y_pred):
     """Return metrics with decimal classification."""
     d = {'AUC': get_AUC(y_true, y_pred_dec), 
