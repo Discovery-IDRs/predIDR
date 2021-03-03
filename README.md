@@ -1,4 +1,4 @@
-# PredIDR
+# predIDR
 
 This is the repo for the PredIDR project in the Discovery-IDR group.  The aim is to 1) comprehensively evaluate previous predictors of protein disorder and 2) build our own classifier to improve on past attempts.
 
