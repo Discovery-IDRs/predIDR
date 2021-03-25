@@ -4,7 +4,13 @@ import os
 from shutil import copyfile
 from Bio import SeqIO
 
+# Load outlier IDs
 outlier_ids = ['Q8WZ42', 'O97791', 'G4SLH0']  # Titin sequences
+with open('../mobidb_stats/out/ns_codes.tsv') as file:  # Sequences with non-standard amino acids
+    file.readline()  # Skip header
+    for line in file:
+        fields = line.split('\t')
+        outlier_ids.append(fields[0])
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
