@@ -16,7 +16,7 @@ def get_labels(record):
 
 
 # Use JSON module to load file
-with open('../../../data/DisProt/JSON/DisProt.json') as file:
+with open('../../../data/DisProt/DisProt.json') as file:
     data = json.load(file)['data']
 
 # Create output directories
@@ -44,5 +44,5 @@ for record in data:
 
 """
 DEPENDENCIES
-../../../data/DisProt/JSON/DisProt.json
+../../../data/DisProt/DisProt.json
 """
