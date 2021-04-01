@@ -3,10 +3,13 @@
 # Top level directories
 /data/
 /bin/
+/.idea/
 
 # All directories
 docs/
 out/
+__pycache__/
+.ipynb_checkpoints/
 
 # File types
 *.csv
