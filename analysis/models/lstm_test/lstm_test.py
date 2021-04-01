@@ -33,11 +33,14 @@ class BatchGenerator(keras.utils.Sequence):
         indices = self.indices[index*self.batch_size:(index+1)*self.batch_size]
         records = [self.records[i] for i in indices]
         max_len = max([len(record[0]) for record in records])
-        x = np.zeros((self.batch_size, max_len))
+        x = np.zeros((self.batch_size, max_len-1))
+        y = np.zeros((self.batch_size, max_len-1))
         for i, (syms, labels) in enumerate(records):
-            x[i, :len(syms)] = [self.ctable[(sym, label)] for sym, label in zip(syms, labels)]
+            x[i, :len(syms)-1] = [self.ctable[(sym, label)] for sym, label in zip(syms[:-1], labels[:-1])]
+            y[i, :len(syms)-1] = [self.ctable[(sym, label)] for sym, label in zip(syms[1:], labels[1:])]
         x = keras.utils.to_categorical(x, num_classes=len(self.ctable)+1)
-        return x, x
+        y = keras.utils.to_categorical(y, num_classes=len(self.ctable)+1)
+        return x, y
 
     def on_epoch_end(self):
         """Shuffles data after each epoch."""
@@ -66,14 +69,14 @@ def load_data(seqs_path, labels_path):
     return records
 
 
-def decode(batch, sym_codes, label_codes):
+def decode(x, sym_codes, label_codes):
     """Decodes a one-hot encoded vector or a probability distribution over the same categories."""
     ctable, i = {0: ('X', 'X')}, 1
     for p in product(sym_codes, label_codes):
         ctable[i] = p
         i += 1
     records = []
-    for indices in np.argmax(batch, axis=2):
+    for indices in np.argmax(x, axis=2):
         syms = []
         labels = []
         for index in indices:
@@ -96,9 +99,9 @@ validation_records = load_data('../../mobidb_validation/split_data/out/val_as_fa
 test_records = load_data('../../mobidb_validation/split_data/out/test_as_fasta.fasta', '../../mobidb_validation/split_data/out/test_labels_as_fasta.fasta')
 
 # Batch data
-train_batches = BatchGenerator(train_records, 32, sym_codes, label_codes)
-validation_batches = BatchGenerator(validation_records, 32, sym_codes, label_codes)
-test_batches = BatchGenerator(test_records, 32, sym_codes, label_codes)
+train_batches = BatchGenerator(train_records, 64, sym_codes, label_codes)
+validation_batches = BatchGenerator(validation_records, 64, sym_codes, label_codes)
+test_batches = BatchGenerator(test_records, 64, sym_codes, label_codes)
 
 # Build model
 model = keras.Sequential(name='simple_lstm')
@@ -109,27 +112,40 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categ
 model.summary()
 
 # Train model
-model.fit(train_batches, epochs=1)
+# Epochs are written explicitly in a training loop since Keras
+# does not support generators for calculating validation metrics
+histories = []
+validation_metrics = []
+for i in range(10):
+    # Fit
+    print(f'EPOCH {i}')
+    history = model.fit(train_batches, epochs=1)
+    histories.append(history)
 
-# Evaluate metrics
-sym_num = 0
-sym_true_num = 0
-label_num = 0
-label_true_num = 0
-for batch in test_batches:
-    true_records = decode(batch[0], sym_codes, label_codes)
-    pred_records = decode(model.predict(batch), sym_codes, label_codes)
-    for true_record, pred_record in zip(true_records, pred_records):
-        true_seq, true_labels = true_record
-        pred_seq, pred_labels = pred_record
-        for true_sym, pred_sym in zip(true_seq.rstrip('X'), pred_seq):
-            sym_num += 1
-            if true_sym == pred_sym:
-                sym_true_num += 1
-        for true_label, pred_label in zip(true_labels.rstrip('X'), pred_labels):
-            label_num += 1
-            if true_label == pred_label:
-                label_true_num += 1
+    # Evaluate
+    total = 0
+    s_count = 0
+    l_count = 0
+    sl_count = 0
+    for batch in validation_batches:
+        true_records = decode(batch[0], sym_codes, label_codes)
+        pred_records = decode(model.predict(batch[0]), sym_codes, label_codes)
+        for true_record, pred_record in zip(true_records, pred_records):
+            true_seq, true_labels = true_record
+            pred_seq, pred_labels = pred_record
+            for z in zip(true_seq.rstrip('X'), pred_seq, true_labels.rstrip('X'), pred_labels):
+                true_sym, pred_sym, true_label, pred_label = z
 
-print('SYMBOL ACCURACY', sym_true_num / sym_num)
-print('LABEL ACCURACY', label_true_num / label_num)
+                total += 1
+                if true_sym == pred_sym:
+                    s_count += 1
+                if true_label == pred_label:
+                    l_count += 1
+                if true_sym == pred_sym and true_label == pred_label:
+                    sl_count += 1
+    validation_metrics.append({'total': total, 's_count': s_count, 'l_count': l_count, 'sl_count': sl_count})
+
+    print('SYMBOL ACCURACY:', s_count / total)
+    print('LABEL ACCURACY:', l_count / total)
+    print('COMBINED ACCURACY:', sl_count / total)
+    print()
