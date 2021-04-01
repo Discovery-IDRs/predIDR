@@ -38,7 +38,6 @@ class BatchGenerator(keras.utils.Sequence):
         for i, (syms, labels) in enumerate(records):
             x[i, :len(syms)-1] = [self.ctable[(sym, label)] for sym, label in zip(syms[:-1], labels[:-1])]
             y[i, :len(syms)-1] = [self.ctable[(sym, label)] for sym, label in zip(syms[1:], labels[1:])]
-        x = keras.utils.to_categorical(x, num_classes=len(self.ctable)+1)
         y = keras.utils.to_categorical(y, num_classes=len(self.ctable)+1)
         return x, y
 
@@ -70,13 +69,13 @@ def load_data(seqs_path, labels_path):
 
 
 def decode(x, sym_codes, label_codes):
-    """Decodes a one-hot encoded vector or a probability distribution over the same categories."""
+    """Decodes a vector of indices to their amino acid symbols and labels."""
     ctable, i = {0: ('X', 'X')}, 1
     for p in product(sym_codes, label_codes):
         ctable[i] = p
         i += 1
     records = []
-    for indices in np.argmax(x, axis=2):
+    for indices in x:
         syms = []
         labels = []
         for index in indices:
@@ -92,6 +91,7 @@ sym_codes = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
              'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 label_codes = ['0', '1']
 category_num = len(sym_codes) * len(label_codes) + 1
+embedding_num = 21
 
 # Load data
 train_records = load_data('../../mobidb_validation/split_data/out/train_as_fasta.fasta', '../../mobidb_validation/split_data/out/train_labels_as_fasta.fasta')
@@ -105,7 +105,7 @@ test_batches = BatchGenerator(test_records, 64, sym_codes, label_codes)
 
 # Build model
 model = keras.Sequential(name='simple_lstm')
-model.add(layers.Masking(mask_value=0, input_shape=(None, category_num), name='mask1'))
+model.add(layers.Embedding(category_num, embedding_num, mask_zero=True, name='embedding1'))
 model.add(layers.LSTM(128, return_sequences=True, name='lstm1'))
 model.add(layers.Dense(category_num, activation='softmax', name='dense1'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
@@ -129,7 +129,7 @@ for i in range(10):
     sl_count = 0
     for batch in validation_batches:
         true_records = decode(batch[0], sym_codes, label_codes)
-        pred_records = decode(model.predict(batch[0]), sym_codes, label_codes)
+        pred_records = decode(np.argmax(model.predict(batch[0]), axis=2), sym_codes, label_codes)
         for true_record, pred_record in zip(true_records, pred_records):
             true_seq, true_labels = true_record
             pred_seq, pred_labels = pred_record
