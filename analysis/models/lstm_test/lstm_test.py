@@ -1,5 +1,6 @@
 """Test of building and training of a simple LSTM under the Keras API."""
 
+import os
 from itertools import product
 from math import floor
 
@@ -133,7 +134,7 @@ for i in range(10):
         for true_record, pred_record in zip(true_records, pred_records):
             true_seq, true_labels = true_record
             pred_seq, pred_labels = pred_record
-            for z in zip(true_seq.rstrip('X'), pred_seq, true_labels.rstrip('X'), pred_labels):
+            for z in zip(true_seq.rstrip('X')[1:], pred_seq, true_labels.rstrip('X')[1:], pred_labels):
                 true_sym, pred_sym, true_label, pred_label = z
 
                 total += 1
@@ -149,3 +150,9 @@ for i in range(10):
     print('LABEL ACCURACY:', l_count / total)
     print('COMBINED ACCURACY:', sl_count / total)
     print()
+
+# Save model
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
+model.save('out/model')
