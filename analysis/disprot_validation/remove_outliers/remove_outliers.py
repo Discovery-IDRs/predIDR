@@ -42,7 +42,7 @@ with open('out/disprot_seqs.fasta', 'w') as file:
     for header, seq in fastas:
         accession = re.search(r'disprot_id:(DP[0-9]+)', header).group(1)
         if accession not in outliers:
-            seqstring = '\n'.join(seq[i:i + 80] for i in range(0, len(seq), 80))
+            seqstring = '\n'.join(seq[i:i+80] for i in range(0, len(seq), 80))
             file.write(header + seqstring + '\n')
 
 # Remove outliers from labels including flipping labels in short segments
@@ -58,7 +58,7 @@ with open('out/disprot_labels.fasta', 'w') as file:
                 if s.stop - s.start >= 10:
                     seq2[s.start:s.stop] = (s.stop-s.start) * ['1']
             seq = ''.join(seq2)
-            seqstring = '\n'.join(seq[i:i + 80] for i in range(0, len(seq), 80))
+            seqstring = '\n'.join(seq[i:i+80] for i in range(0, len(seq), 80))
             file.write(header + seqstring + '\n')
 
 """

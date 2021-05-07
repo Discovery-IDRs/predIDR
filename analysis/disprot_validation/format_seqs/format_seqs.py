@@ -59,8 +59,8 @@ if not os.path.exists('out/labels/'):
 with open('out/disprot_seqs.fasta', 'w') as seqs_file, open('out/disprot_labels.fasta', 'w') as labels_file:
     for accession in sorted(reps):
         seq_header, seq, label_header, label = records[accession]
-        seqstring = '\n'.join([seq[i:i + 80] for i in range(0, len(seq), 80)]) + '\n'
-        labelstring = '\n'.join([label[i:i + 80] for i in range(0, len(label), 80)]) + '\n'
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)]) + '\n'
         seqs_file.write(seq_header + seqstring)
         labels_file.write(label_header + labelstring)
 
