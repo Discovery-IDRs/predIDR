@@ -32,14 +32,6 @@ cluster_path = '../cluster_seqs/out/mobidb.clstr'
 seqs_fasta = load_fasta(seqs_path)
 labels_fasta = load_fasta(labels_path)
 
-# Read raw cluster output and extract representative protein codes
-reps = []
-with open(cluster_path) as file:
-    for line in file:
-        if '*' in line:
-            accession = line.split('|')[0].split('>')[1]
-            reps.append(accession)
-
 records = {}  # Dictionary of header, seq, header, label keyed by accession
 for header, seq in seqs_fasta:
     accession = header.split('|')[0][1:]  # Trim >
@@ -47,6 +39,14 @@ for header, seq in seqs_fasta:
 for header, label in labels_fasta:
     accession = header.split('|')[0][1:]  # Trim >
     records[accession].extend([header, label])
+
+# Read raw cluster output and extract representative protein codes
+reps = []
+with open(cluster_path) as file:
+    for line in file:
+        if '*' in line:
+            accession = line.split('|')[0].split('>')[1]
+            reps.append(accession)
 
 # Data shuffling and splitting
 # Set random seed for repeatability and shuffle the data after sorting in-place
