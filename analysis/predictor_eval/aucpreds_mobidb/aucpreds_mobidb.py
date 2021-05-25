@@ -1,4 +1,4 @@
-"""Run AUCPreD on DisProt sequences."""
+"""Run AUCPreD on MobiDB sequences."""
 
 import multiprocessing as mp
 import os
@@ -7,7 +7,7 @@ import subprocess
 
 def get_record(path):
     accession = path.split('.')[0]
-    subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i ../../disprot_validation/format_seqs/out/seqs/{path} -o out/raw/',
+    subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i ../../mobidb_validation/format_seqs/out/seqs/{path} -o out/raw/',
                    check=True, shell=True)
 
     # Convert raw output to binary labels
@@ -21,7 +21,7 @@ def get_record(path):
         labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)]) + '\n'
 
     # Write labels to file
-    with open(f'../../disprot_validation/format_seqs/out/seqs/{path}') as file:
+    with open(f'../../mobidb_validation/format_seqs/out/seqs/{path}') as file:
         header = file.readline()
 
     return header, labelstring
@@ -37,7 +37,7 @@ if not os.path.exists('out/raw/'):
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        records = pool.map(get_record, os.listdir('../../disprot_validation/format_seqs/out/seqs/'), chunksize=5)
+        records = pool.map(get_record, os.listdir('../../mobidb_validation/format_seqs/out/seqs/'), chunksize=5)
 
     with open('out/aucpreds_labels.fasta', 'w') as file:
         for header, labelstring in sorted(records):
@@ -45,5 +45,5 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../../disprot_validation/format_seqs/format_seqs.py
+../../mobidb_validation/format_seqs/format_seqs.py
 """
