@@ -16,7 +16,6 @@
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
-# Set current directory and link to output in scratch
 source /global/home/users/singleton/.bashrc
 conda activate predIDR
 module load gcc
