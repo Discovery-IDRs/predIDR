@@ -29,13 +29,12 @@ def get_record(path):
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
-# Make output directories
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-if not os.path.exists('out/raw/'):
-    os.mkdir('out/raw/')
-
 if __name__ == '__main__':
+    if not os.path.exists('out/'):
+        os.mkdir('out/')
+    if not os.path.exists('out/raw/'):
+        os.mkdir('out/raw/')
+
     with mp.Pool(processes=num_processes) as pool:
         records = pool.map(get_record, os.listdir('../../mobidb_validation/format_seqs/out/seqs/'), chunksize=5)
 
