@@ -1,17 +1,16 @@
-"""Run AUCPreD on DisProt sequences."""
+"""Run AUCPreD on profiles generated from DisProt sequences."""
 
 import multiprocessing as mp
 import os
 import subprocess
 
 
-def get_record(path):
-    accession = path.split('.')[0]
-    subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i ../../disprot_validation/format_seqs/out/seqs/{path} -o out/raw/',
+def get_record(accession):
+    subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i ../tgt_disprot/out/{accession}/{accession}.tgt -o out/raw/',
                    check=True, shell=True)
 
     # Convert raw output to binary labels
-    with open(f'out/raw/{accession}.diso_noprof') as raw:
+    with open(f'out/raw/{accession}.diso_profile') as raw:
         label = []
         for line in raw:
             if line and not line.startswith('#'):  # If not empty and not comment
@@ -21,7 +20,7 @@ def get_record(path):
         labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)]) + '\n'
 
     # Get header
-    with open(f'../../disprot_validation/format_seqs/out/seqs/{path}') as file:
+    with open(f'../tgt_disprot/out/{accession}/{accession}.fasta_raw') as file:
         header = file.readline()
 
     return header, labelstring
@@ -36,13 +35,14 @@ if __name__ == '__main__':
         os.mkdir('out/raw/')
 
     with mp.Pool(processes=num_processes) as pool:
-        records = pool.map(get_record, os.listdir('../../disprot_validation/format_seqs/out/seqs/'), chunksize=5)
+        args = [path for path in os.listdir('../tgt_disprot/out/') if not path.endswith('out')]
+        records = pool.map(get_record, args, chunksize=5)
 
-    with open('out/aucpreds_labels.fasta', 'w') as file:
+    with open('out/aucpredp_labels.fasta', 'w') as file:
         for header, labelstring in sorted(records):
             file.write(header + labelstring)
 
 """
 DEPENDENCIES
-../../disprot_validation/format_seqs/format_seqs.py
+../tgt_disprot/tgt_disprot.py
 """

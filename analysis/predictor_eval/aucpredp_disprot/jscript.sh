@@ -10,8 +10,8 @@
 #SBATCH --cpus-per-task=1
 #
 # Reporting parameters
-#SBATCH --job-name=aucpreds_disprot
-#SBATCH --output=aucpreds_disprot.out
+#SBATCH --job-name=aucpredp_disprot
+#SBATCH --output=aucpredp_disprot.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
@@ -19,4 +19,4 @@
 source /global/home/users/singleton/.bashrc
 conda activate predIDR
 module load gcc
-python aucpreds_disprot.py
+python aucpredp_disprot.py
