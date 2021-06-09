@@ -12,10 +12,13 @@ prefix="${fasta_name%.*}"
 ext="${fasta_name##*.}"
 
 # Run Espritz
-temp_dir="${out_path}/${prefix}"
+# (Espritz is buggy and only runs correctly if it's executed from the folder in which it's stored due to path issues in espritz.pl)
+temp_dir="$(realpath "${out_path}/${prefix}")"
 mkdir "${temp_dir}"
 cp "${fasta_path}" "${temp_dir}"
-${espritz_path} "${temp_dir}" D 1
+cd $(dirname "${espritz_path}")
+"./$(basename "${espritz_path}")" "${temp_dir}" D 1
+cd -  # Return to previous directory
 
 # Clean up
 if [ ! -d "${out_path}/raw/" ]; then
