@@ -14,7 +14,7 @@ def get_record(path):
     with open(f'out/raw/{accession}.diso_noprof') as raw:
         label = []
         for line in raw:
-            if line and not line.startswith('#'):  # If not empty and not comment
+            if not line.startswith('#'):
                 sym = '1' if '*' in line else '0'
                 label.append(sym)
         label = ''.join(label)
