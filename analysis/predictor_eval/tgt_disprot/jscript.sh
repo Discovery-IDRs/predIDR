@@ -7,7 +7,6 @@
 #
 # Process parameters
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
 #
 # Reporting parameters
 #SBATCH --job-name=tgt_disprot
