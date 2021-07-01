@@ -174,7 +174,7 @@ def get_metrics(y_true, y_pred, visual=False):
     else:
         y_pred_bin = [round(val) for val in y_pred]
         binary_metrics_df = get_binary_metrics(y_true, y_pred_bin)
-        decimal_metrics_df  = get_decimal_metrics(y_true, y_pred)
+        decimal_metrics_df = get_decimal_metrics(y_true, y_pred)
         if visual:
             get_visualizations(y_true, y_pred_bin, y_pred)
     metrics_df = pd.concat([binary_metrics_df, decimal_metrics_df], axis=1)
@@ -209,26 +209,28 @@ def get_visualizations(y_true, y_pred_bin, y_pred_dec):
     get_cm_heatmap(y_true, y_pred_bin)
     return
 
-def get_all_metrics(y_true, y_pred_list, visual_list=[], predictors):
+
+def get_all_metrics(y_true, y_pred_list, predictors, visual_list=[]):
     """Return dataframe of all possible metrics given multiple predictors."""
     df_list =[]
     for i in range(len(y_pred_list)):
         df_list.append(get_metrics(y_true, y_pred_list[i], visual_list[i]))
-    
+
     output_df = pd.concat(df_list, ignore_index=True)
     output_df['Predictor'] = predictors
     output_df.set_index('Predictor')
     return output_df
 
-def get_all_metrics_by_protein(y_true_dict, y_pred_dict_list, visual_list=[], predictors):
+
+def get_all_metrics_by_protein(y_true_dict, y_pred_dict_list, predictors, visual_list=[]):
     df_list = []
     if len(y_pred_dict_list) == 1:
         for y_pred_dict in y_pred_dict_list:
             for key in y_pred_dict:
                 y_true = y_true_dict[key]
                 y_pred = y_pred_dict[key]
-                df_list.append(get_metrics(get_metrics(y_true, y_pred))
-            
+                df_list.append(get_metrics(get_metrics(y_true, y_pred)))
+
             output_df = pd.concat(df_list, ignore_index=True)
             output_df['DISPROT_ID'] = y_pred_dict.keys()
             output_df.set_index('DISPROT_ID')
@@ -243,21 +245,22 @@ def get_all_metrics_by_protein(y_true_dict, y_pred_dict_list, visual_list=[], pr
             output_df = pd.concat(df_list, ignore_index=True)
         output_df['Predictor'] = predictors
         output_df.set_index('Predictor')
-    
+
     return output_df
+
 
 # File IO
 def get_rid_newline(fasta_file):
-    """input name of fasta file as string and function returns string 
+    """input name of fasta file as string and function returns string
     containing contents of fasta formatted without newlines in sequences"""
-    
+
     with open(fasta_file) as file:
         data = file.read()
-    
+
     lines = data.splitlines()
-    
+
     new_lines_str = ""
-    
+
     for line in lines:
         if line[0] == ">":
             new_lines_str = new_lines_str + "\n" + line + "\n"
@@ -267,21 +270,22 @@ def get_rid_newline(fasta_file):
             new_lines_str = new_lines_str + line
         else:
             pass
-    
+
     new_lines_str = new_lines_str[1:]
-    
+
     return new_lines_str
+
 
 def fasta_file_to_dict(fasta_file):
     """input name of fasta file as string and function converts that fasta file into dict"""
-    
+
     clean_fasta_str = get_rid_newline(fasta_file)
-        
+
     lines = clean_fasta_str.splitlines()
-    
+
     disprot_id = []
     sequences = []
-    
+
     for line in lines:
         if line[0] == ">":
             disprot_id.append(line[12:19])
@@ -290,42 +294,49 @@ def fasta_file_to_dict(fasta_file):
             for i in line:
                 int_list.append(int(i))
             sequences.append(int_list)
-            
+
     return dict(zip(disprot_id, sequences))
 
+
 def get_y_true_dict(y_true_fasta_file="disprot_2020_06.fasta"):
-    y_true_dict = fasta_to_dict(y_true_fasta_file)
+    y_true_dict = fasta_file_to_dict(y_true_fasta_file)
     return y_true_dict
 
+
 def get_y_pred_dict(y_pred_fasta_file):
-    y_pred_dict = fasta_to_dict(y_pred_fasta_file)
+    y_pred_dict = fasta_file_to_dict(y_pred_fasta_file)
     return y_pred_dict
 
-def get_y_true(y_true_dict): 
+
+def get_y_true(y_true_dict):
+    y_true = []
     for key in y_true_dict:
         y_true.append(y_true_dict[key])
     return y_true
 
+
 def get_y_pred(y_pred_dict):
+    y_pred = []
     for key in y_pred_dict:
         y_pred.append(y_pred_dict[key])
     return y_pred
 
+
 def main(y_pred_fasta_files, y_true_fasta_file, by_protein=False, visual_list=[], all_visual=False):
     if not os.path.exists('out_metrics/'):
         os.mkdir('out_metrics/')
-    
+
     if not (all_visual or visual_list):
-        visual_list =[False for i in range(y_true_list) ]
-    elif all_visual and not visual_list :
-        visual_list =[True for i in range(y_true_list) ] 
-    
+        visual_list = [False for i in range(y_true_list)]
+    elif all_visual and not visual_list:
+        visual_list = [True for i in range(y_true_list)]
+
     y_true_dict = get_y_true_dict(y_pred_fasta_files)
     y_true = get_y_pred(y_pred_fasta_file)
-    
+
     y_pred_list = []
-    y_pred_dict_list =[]
-    predictors = [] 
+    y_pred_dict_list = []
+    predictors = []
     for y_pred_fasta_file in y_pred_fasta_files:
         if by_protein:
             y_pred_dict = get_y_pred_dict(y_pred_fasta_file)
@@ -343,6 +354,3 @@ def main(y_pred_fasta_files, y_true_fasta_file, by_protein=False, visual_list=[]
         df = get_all_metrics(y_true_dict, y_pred_dict_list, visual_list, predictors)
         df.to_csv(r'out_metrics/predictor_metrics.csv', index=False)
     return
-
-
-
