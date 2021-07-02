@@ -322,35 +322,64 @@ def get_y_pred(y_pred_dict):
     return y_pred
 
 
-def main(y_pred_fasta_files, y_true_fasta_file, by_protein=False, visual_list=[], all_visual=False):
-    if not os.path.exists('out_metrics/'):
-        os.mkdir('out_metrics/')
+def main(y_true_path, y_pred_paths, accession_regex, threshold=0.5, visual=False, output_path='out/'):
+    """Execute full metrics pipeline.
 
-    if not (all_visual or visual_list):
-        visual_list = [False for i in range(y_true_list)]
-    elif all_visual and not visual_list:
-        visual_list = [True for i in range(y_true_list)]
+    The pipeline has two somewhat distinct behaviors depending on whether the
+    predicted labels are in binary or decimal format. (This is automatically
+    detected.) If the labels are binary, only binary metrics are computed. If
+    the labels are decimal, binary and decimal metrics are computed. The binary
+    labels are calculated from the decimal scores by applying a threshold above
+    which the residue is labeled disordered.
 
-    y_true_dict = get_y_true_dict(y_pred_fasta_files)
-    y_true = get_y_pred(y_pred_fasta_file)
+    Parameters
+    ----------
+    y_true_path: str
+        Path to true labels formatted as a FASTA-like binary where 1 and 0
+        indicate disorder and order, respectively.
+    y_pred_paths: 2-tuple of strings
+        The first element is predictor label and second element is the path to
+        the predicted labels. The predicted labels should either be formatted
+        as a FASTA-like binary or FASTA-like decimal file where the headers
+        are given as in FASTA files, but the score for each residue is given on
+         a separate line. These scores must be in [0, 1].
+    accession_regex: str
+        A regular expression to extract the accession from the header of each
+        sequence in all files.
+    threshold: float or dict
+        If float, threshold for converting decimal predictions is set globally.
+        Otherwise the thresholds are set individually, stored in a dict keyed
+        by the predictor label given in y_pred_paths.
+    visual: bool
+        If true, output includes plots.
+    output_path: str
+        Path to output directory. The directly will be created if it does not
+        exist.
 
-    y_pred_list = []
-    y_pred_dict_list = []
-    predictors = []
-    for y_pred_fasta_file in y_pred_fasta_files:
-        if by_protein:
-            y_pred_dict = get_y_pred_dict(y_pred_fasta_file)
-            y_pred_dict_list.append(y_pred_dict)
-        y_pred_list.append(get_y_pred(y_pred_dict))
-        predictor = y_pred_fasta_file.split(".")[0]
-        predictors.append(predictor)
+    Returns
+    -------
+        No return value (i.e. None); output is written to output_path.
+    """
+    # Load y_true and store in dictionary keyed by accession
+    # Check labels are binary
 
-    if by_protein:
-        if any(visual_list):
-            print("Visuals by protein not available. Please run without by_protein flag for visuals. Metrics still computed.")
-            df = get_all_metrics_by_protein(y_true, y_pred_list, [False for i in range(y_true_list)], predictors)
-            df.to_csv(r'out_metrics/predictor_metrics_byprotein.csv', index=False)
-    else:
-        df = get_all_metrics(y_true_dict, y_pred_dict_list, visual_list, predictors)
-        df.to_csv(r'out_metrics/predictor_metrics.csv', index=False)
-    return
+    # Load y_pred and store in dictionary keyed by accession
+        # If binary, values are strings
+        # If decimal, values are lists of scores
+    # Check the accessions match those in y_true
+
+    # Calculate metrics
+        # Decimal
+            # AUC-PR, AUC-ROC
+        # Binary
+            # TP, TF, FP, FN
+            # accuracy, balanced accuracy, sensitivity, specificity, precision, MCC, F1
+    # Calculate binary metrics of individual proteins as dataframe of metrics indexed by accession and predictor
+    # Calculate binary metrics merged at the level of proteins
+        # Should be average of individual protein metrics
+        # Check on undefined behavior for certain metrics with zero denom
+    # Calculate binary and decimal metrics at the level of proteins
+        # Merge individual sequences
+        # Do binary metrics on merged strings
+        # Do decimal metrics on merged strings
+    pass
