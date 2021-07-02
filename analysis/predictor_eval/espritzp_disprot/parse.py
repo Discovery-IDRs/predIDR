@@ -2,7 +2,7 @@
 
 import os
 
-with open('out/espritzs_labels.fasta', 'w') as labels:
+with open('out/espritzp_labels.fasta', 'w') as labels:
     paths = [path for path in os.listdir('out/raw/') if path.endswith('espritz')]
     for path in sorted(paths):
         accession = path.split('.')[0]

@@ -1,4 +1,4 @@
-"""Run IUPRED on DisProt sequences."""
+"""Run IUPRED2a on DisProt sequences."""
 
 import os
 import subprocess
@@ -9,7 +9,7 @@ if not os.path.exists('out/'):
 if not os.path.exists('out/raw/'):
     os.mkdir('out/raw/')
 
-with open('out/iupred_labels.fasta', 'w') as labels:
+with open('out/iupred2a_labels.fasta', 'w') as labels:
     for path in sorted(os.listdir('../../disprot_validation/format_seqs/out/seqs/')):
         accession = path.split('.')[0]
         process = subprocess.run(['python', '../../../bin/iupred2a/iupred2a.py',

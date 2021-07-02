@@ -1,4 +1,5 @@
 import os
+import re
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -276,26 +277,25 @@ def get_rid_newline(fasta_file):
     return new_lines_str
 
 
-def fasta_file_to_dict(fasta_file):
-    """input name of fasta file as string and function converts that fasta file into dict"""
+def load_fasta(path, regex):
+    fasta = {}
+    with open(path) as file:
+        line = file.readline()
+        while line:
+            if line.startswith('>'):
+                accession = re.search(regex, line).group(1)
+                line = file.readline()
 
-    clean_fasta_str = get_rid_newline(fasta_file)
-
-    lines = clean_fasta_str.splitlines()
-
-    disprot_id = []
-    sequences = []
-
-    for line in lines:
-        if line[0] == ">":
-            disprot_id.append(line[12:19])
-        else:
-            int_list = []
-            for i in line:
-                int_list.append(int(i))
-            sequences.append(int_list)
-
-    return dict(zip(disprot_id, sequences))
+            seqlines = []
+            while line and not line.startswith('>'):
+                seqlines.append(line.rstrip())
+                line = file.readline()
+            seq = ''.join(seqlines)
+            if accession not in fasta:
+                fasta[accession] = seq
+            else:
+                raise RuntimeError(f'Duplicate accession detected: {accession}')
+    return fasta
 
 
 def get_y_true_dict(y_true_fasta_file="disprot_2020_06.fasta"):
@@ -345,7 +345,9 @@ def main(y_true_path, y_pred_paths, accession_regex, threshold=0.5, visual=False
          a separate line. These scores must be in [0, 1].
     accession_regex: str
         A regular expression to extract the accession from the header of each
-        sequence in all files.
+        sequence in all files. The accession is extracted from the first group
+        of the resulting match object, so it must be the first parenthesized
+        subexpression.
     threshold: float or dict
         If float, threshold for converting decimal predictions is set globally.
         Otherwise the thresholds are set individually, stored in a dict keyed
