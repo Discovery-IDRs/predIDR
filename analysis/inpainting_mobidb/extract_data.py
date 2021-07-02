@@ -57,6 +57,10 @@ dis_lower_limit = 30
 dis_upper_limit = 90
 len_residue = 180
 
+# List to store proteins in dataset that fulfil requirements to check the number of proteins
+protein_lst = set()
+not_protein_lst = set()
+
 # Iterate through all proteins 
 for protein_id in protein_dict:
     
@@ -75,22 +79,29 @@ for protein_id in protein_dict:
             
             len_remainder = (len_residue - len_seg) % 2 
             
-            #only need index of disordered sequence 
+            # only need index of disordered sequence
             start_ind = s[0].start - len_context 
             end_ind = s[0].stop + len_context
             
-            output_labels = len_context*'0' + len_seg*'1' + len_context*'0'
+            output_labels = len_context*'0' + len_seg*'1' + '0'*(len_context + len_remainder)
             output_aaseq = protein_dict.get(protein_id)[0][slice(start_ind, end_ind + len_remainder)]
+
             
             # Writing the description and the labels/amino acid sequences of proteins that fits the desired length
-            if len(output_labels) == len_residue: 
+            if len(output_labels) == len_residue and len(output_aaseq) == len_residue:
+
+                protein_lst.add(protein_id)
                 
                 labels_file.write(">" + protein_dict.get(protein_id)[2] + "|" + str(start_ind) + ":" + str(end_ind) + "\n"
                                  + "\n".join([output_labels[i:i+80] for i in range(0, len(output_labels), 80)]) + "\n")
                 
-                unmasked_seq_file.write(">" + protein_dict.get(protein_id)[2] + "|" + str(start_ind) + ":" + str(end_ind) 
+                unmasked_seq_file.write(">" + protein_dict.get(protein_id)[2] + "|" + str(start_ind) + ":" + str(end_ind) + "\n"
                                        + "\n".join([output_aaseq[i:i+80] for i in range(0, len(output_aaseq), 80)]) + "\n")
+                
+            elif len(output_aaseq) != len_residue:
+                not_protein_lst.add(protein_id)
+
 
 labels_file.close()
 unmasked_seq_file.close()
-
+print('len of dataset: ' + str(len(protein_lst)))
