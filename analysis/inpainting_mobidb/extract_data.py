@@ -58,8 +58,9 @@ dis_upper_limit = 90
 len_residue = 180
 
 # List to store proteins in dataset that fulfil requirements to check the number of proteins
-protein_lst = set()
-not_protein_lst = set()
+unique_protein = set()
+uniuqe_not_protein = set()
+nonunique_protein = []
 
 # Iterate through all proteins 
 for protein_id in protein_dict:
@@ -90,18 +91,20 @@ for protein_id in protein_dict:
             # Writing the description and the labels/amino acid sequences of proteins that fits the desired length
             if len(output_labels) == len_residue and len(output_aaseq) == len_residue:
 
-                protein_lst.add(protein_id)
+                unique_protein.add(protein_id)
+                nonunique_protein.append(protein_id)
                 
                 labels_file.write(">" + protein_dict.get(protein_id)[2] + "|" + str(start_ind) + ":" + str(end_ind) + "\n"
                                  + "\n".join([output_labels[i:i+80] for i in range(0, len(output_labels), 80)]) + "\n")
                 
                 unmasked_seq_file.write(">" + protein_dict.get(protein_id)[2] + "|" + str(start_ind) + ":" + str(end_ind) + "\n"
                                        + "\n".join([output_aaseq[i:i+80] for i in range(0, len(output_aaseq), 80)]) + "\n")
-                
+
             elif len(output_aaseq) != len_residue:
-                not_protein_lst.add(protein_id)
+                uniuqe_not_protein.add(protein_id)
 
 
 labels_file.close()
 unmasked_seq_file.close()
-print('len of dataset: ' + str(len(protein_lst)))
+print('len of dataset unique: ' + str(len(unique_protein)))
+print('len of dataset non-unique: ' + str(len(nonunique_protein)))

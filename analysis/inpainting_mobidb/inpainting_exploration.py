@@ -1,26 +1,25 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[93]:
 
 
 import os
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import scipy.ndimage as ndimage
 from Bio import SeqIO
 
 
-# In[ ]:
+# In[94]:
 
 
 fasta_seq = SeqIO.parse('../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
 fasta_disorder = SeqIO.parse('../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
 
 
-# In[ ]:
+# In[95]:
 
 
 def get_segments(aa_seq, label_seq, segment_type, accession, description):
@@ -32,7 +31,7 @@ def get_segments(aa_seq, label_seq, segment_type, accession, description):
         segment = aa_seq[s[0]]  # Unpack 1-element slice tuple
         d = {'accession': accession, 'description': description, 
              'segment_type': segment_type, 'len': len(segment), 
-             'index': (s[0].start, s[0].stop)}
+             'slice': s}
         
         aa_counts = count_amino_acids(segment)
         d.update(aa_counts)
@@ -50,7 +49,7 @@ def count_amino_acids(aa_seq):
     return d
 
 
-# In[ ]:
+# In[96]:
 
 
 protein_seq_dict = {}
@@ -58,7 +57,7 @@ for protein in fasta_seq:
     protein_seq_dict[protein.id.split("|")[0]] = str(protein.seq)
 
 
-# In[ ]:
+# In[97]:
 
 
 rows = []
@@ -81,18 +80,18 @@ for protein in fasta_disorder:
     rows.extend(ds_ord)
     rows.extend(ds_all)
 df1 = pd.DataFrame(rows)
-print(df1)
+#print(df1)
 
 
-# In[ ]:
+# In[98]:
 
 
-df1
+#df1
 
 
 # # Length Distribution of Disordered Regions in Proteins
 
-# In[ ]:
+# In[99]:
 
 
 disorder = df1[df1['segment_type'] == 'D']
@@ -107,7 +106,7 @@ plt.title('Length of Disordered Regions')
 
 # Length of the disordered regions drops off significantly after about a length of 90, making the upper limit of the length of our data amino acid sequence be 180, because we want >50% unmasked (amino acid sequences of the ordered regions). 
 
-# In[ ]:
+# In[100]:
 
 
 disless100 = disorder[disorder['len'] <= 100]
@@ -116,17 +115,55 @@ plt.hist(disless100['len'])
 
 # The cut off for a disordered region is more than 30 amino acid residues. And we want the max disordered region length to be 90 amino acids, as stated above. This gives us 5,619 proteins for our dataset
 
-# In[ ]:
+# In[101]:
 
 
-dismore30 = disless100[disless100['len'] >= 30]
-plt.hist(dismore30['len'])
-disless90 = dismore30[dismore30['len'] <= 90] 
-plt.hist(disless90['len'])
+dismore30_less90 = disorder.loc[(disorder['len'] >= 30) & (disorder['len'] <= 90)]
+plt.hist(dismore30_less90['len'])
 
 
-# In[ ]:
+# In[102]:
 
 
-disless90
+dismore30_less90['accession'].nunique()
+
+
+# In[103]:
+
+
+#dismore30_less90
+
+
+# In[111]:
+
+
+# Boolean List of whether there is enough context for amino acid sequence 
+enough_context = []
+# variable of residue length desired 
+residue_len = 180
+
+# List of all possible protein acccession and slice objects
+acc_lst = list(dismore30_less90['accession'])
+slice_lst = list(dismore30_less90['slice'])
+
+for i in range(0, len(acc_lst)):
+    acc = acc_lst[i]
+    # 
+    _slice = slice_lst[i][0]
+    full_seq = protein_seq_dict[acc]
+    dis_len = len(full_seq[_slice])
+    
+    # max content needed, (this means that excluding some proteins that have enough context) --> underestimate 
+    context_len = (residue_len - dis_len)//2 + 1 
+    
+    # checking if there is enough context on both sides of the protein 
+    cond = ((_slice.start - context_len >= 0) and (_slice.stop + context_len <= len(full_seq) - 1))
+    
+    enough_context.append(cond)
+
+
+# In[114]:
+
+
+print('minimum number of entries in dataset: ' + str(sum(enough_context)))
 
