@@ -7,20 +7,32 @@ import pandas as pd
 import sklearn.metrics
 
 
-# Binary metric functions
+# Label metric functions
+def get_label_metrics(y_true, y_pred):
+    """Returns dictionary of metrics calculated from labels."""
+    cmatrix = get_confusion_matrix(y_true, y_pred)
+    d = {'accuracy': get_accuracy(cmatrix),
+         'sensitivity': get_sensitivity(cmatrix),
+         'specificity': get_specificity(cmatrix),
+         'precision': get_precision(cmatrix),
+         'MCC': get_MCC(cmatrix),
+         'F1': get_F1(cmatrix)}
+    return d
+
+
 def get_confusion_matrix(y_true, y_pred):
     """Returns a binary confusion matrix."""
     if len(y_true) != len(y_pred):
         raise ValueError('y_true and y_pred are unequal lengths')
     tp, fp, tn, fn = 0, 0, 0, 0
-    for true_label, pred_label in zip(y_true, y_pred):
-        if true_label == 1:
-            if pred_label == 1:
+    for label_true, label_pred in zip(y_true, y_pred):
+        if label_true == 1:
+            if label_pred == 1:
                 tp += 1
             else:
                 fn += 1
         else:
-            if pred_label == 1:
+            if label_pred == 1:
                 fp += 1
             else:
                 tn += 1
@@ -51,7 +63,7 @@ def get_MCC(cmatrix):
     tp, tn, fp, fn = cmatrix['tp'], cmatrix['tn'], cmatrix['fp'], cmatrix['fn']
     numerator = tp * tn - fp * fn
     denominator = ((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
-    if min(tp+fp, tp+fn, tn+fp, tn+fn) == 0:
+    if any([s == 0 for s in (tp+fp, tp+fn, tn+fp, tn+fn)]):
         return np.nan
     return numerator / (denominator ** 0.5)
 
@@ -80,105 +92,59 @@ def get_specificity(cmatrix):
     return tn / (tn + fp)
 
 
-# Decimal metric functions
-def get_ROC_AUC(y_true, y_pred):
-    """Returns ROC AUC for decimal classification."""
-    return sklearn.metrics.roc_auc_score(y_true, y_pred)
-
-
-def get_PR_AUC(y_true, y_pred):
-    """Returns PR AUC for decimal classification."""
-    p_array, r_array, threshold = sklearn.metrics.precision_recall_curve(y_true, y_pred)
-    return sklearn.metrics.auc(r_array, p_array)
-
-
-def get_cross_entropy(y_true, y_pred):
-    """Returns cross entropy (log loss) for decimal predictions."""
-    return sklearn.metrics.log_loss(y_true, y_pred)
-
-
-# Plotting functions
-def plot_ROC_curve(y_true, y_pred, output_path):
-    """Saves ROC curve graph for decimal classification."""
-    fp_rate, tp_rate, threshold = sklearn.metrics.roc_curve(y_true, y_pred)
-    plt.plot(fp_rate, tp_rate)
-    plt.title('ROC Curve')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.savefig(f'{output_path}/roc_plot.png')
-    plt.close()
-
-
-def plot_PR_curve(y_true, y_pred, output_path):
-    """Saves precision recall curve graph for decimal classification."""
-    p_array, r_array, threshold = sklearn.metrics.precision_recall_curve(y_true, y_pred)
-    plt.plot(r_array, p_array)
-    plt.title('PR Curve')
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.savefig(f'{output_path}/pr_plot.png')
-    plt.close()
-
-
-# Validation functions
-def is_binary(labels):
-    """Returns whether all values in a list are binary.
-
-       Parameters
-       ----------
-        labels: iterable
-            Labels for each residue. Can be given as strings or ints (or even a
-            mixture of the two).
-
-       Returns
-       -------
-           bool
-             Returns True if labels only contain binary values, False otherwise.
-    """
-    for label in labels:
-        if label not in [0, 1]:
-            return False
-    return True
-
-
-def is_binary_file(path):
-    with open(path) as file:
-        file.readline()
-        try:
-            return set(file.readline().rstrip()) == set('01')
-        except ValueError:
-            return False
-
-
-# Pipeline: Metrics and Visualizations
-def get_binary_metrics(y_true, y_pred):
-    """Returns dictionary of metrics with binary labels."""
-    cmatrix = get_confusion_matrix(y_true, y_pred)
-    d = {'accuracy': get_accuracy(cmatrix),
-         'MCC': get_MCC(cmatrix),
-         'sensitivity': get_sensitivity(cmatrix),
-         'specificity': get_specificity(cmatrix),
-         'precision': get_precision(cmatrix),
-         'F1': get_F1(cmatrix)}
-    return d
-
-
-def get_decimal_metrics(y_true, y_pred):
-    """Returns dictionary of metrics with decimal scores."""
+# Score metric functions
+def get_score_metrics(y_true, y_pred):
+    """Returns dictionary of metrics calculated from scores."""
     d = {'ROC_AUC': get_ROC_AUC(y_true, y_pred),
          'PR_AUC': get_PR_AUC(y_true, y_pred),
          'cross_entropy': get_cross_entropy(y_true, y_pred)}
     return d
 
 
-def get_visualizations(y_true, y_pred):
-    """Plots visualizations for binary and decimal classifications."""
-    plot_ROC_curve(y_true, y_pred)
-    plot_PR_curve(y_true, y_pred)
+def get_ROC_AUC(y_true, y_pred):
+    """Returns ROC AUC for scores."""
+    return sklearn.metrics.roc_auc_score(y_true, y_pred)
+
+
+def get_PR_AUC(y_true, y_pred):
+    """Returns PR AUC for scores."""
+    ps, rs, threshold = sklearn.metrics.precision_recall_curve(y_true, y_pred)
+    return sklearn.metrics.auc(rs, ps)
+
+
+def get_cross_entropy(y_true, y_pred):
+    """Returns cross entropy (log loss) for scores."""
+    return sklearn.metrics.log_loss(y_true, y_pred)
+
+
+# Plotting functions
+def plot_ROC_curve(records, output_path):
+    """Saves ROC curve."""
+    for predictor, y_true, y_pred in records:
+        fps, tps, threshold = sklearn.metrics.roc_curve(y_true, y_pred)
+        plt.plot(fps, tps, label=predictor)
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.legend()
+    plt.savefig(f'{output_path}/roc_plot.png')
+    plt.close()
+
+
+def plot_PR_curve(records, output_path):
+    """Saves PR curve."""
+    for predictor, y_true, y_pred in records:
+        ps, rs, threshold = sklearn.metrics.precision_recall_curve(y_true, y_pred)
+        plt.plot(rs, ps, label=predictor)
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.legend()
+    plt.savefig(f'{output_path}/pr_plot.png')
+    plt.close()
 
 
 # File IO
-def load_binary(path, regex):
+def load_labels(path, regex):
+    """Return dictionary of labels as list keyed by accession."""
     records = {}
     with open(path) as file:
         line = file.readline()
@@ -191,14 +157,17 @@ def load_binary(path, regex):
             while line and not line.startswith('>'):
                 values.extend([int(value) for value in line.rstrip()])
                 line = file.readline()
-            if accession not in records:
-                records[accession] = values
-            else:
+            if accession in records:
                 raise RuntimeError(f'Duplicate accession detected: {accession}')
+            elif not set(values) <= {0, 1}:
+                raise RuntimeError(f'Non-binary values detected: {accession}')
+            else:
+                records[accession] = values
     return records
 
 
-def load_decimal(path, regex):
+def load_scores(path, regex):
+    """Return dictionary of scores as list keyed by accession."""
     records = {}
     with open(path) as file:
         line = file.readline()
@@ -209,42 +178,54 @@ def load_decimal(path, regex):
 
             values = []
             while line and not line.startswith('>'):
-                sym, value = line.split()
-                values.append(float(value))
+                values.append(float(line.rstrip()))
                 line = file.readline()
-            if accession not in records:
-                records[accession] = value
-            else:
+            if accession in records:
                 raise RuntimeError(f'Duplicate accession detected: {accession}')
+            else:
+                records[accession] = values
     return records
 
 
-def main(y_true_path, y_pred_paths, accession_regex, thresholds=0.5, visual=False, output_path='out/'):
+def main(y_true_path, accession_regex,
+         y_label_paths=None, y_score_paths=None, thresholds=None, visual=False, output_path='out/'):
     """Executes the full metrics pipeline.
 
-    The pipeline has two somewhat distinct behaviors depending on whether the
-    predicted labels are in binary or decimal format. (This is automatically
-    detected.) If the labels are binary, only binary metrics are computed. If
-    the labels are decimal, binary and decimal metrics are computed. The binary
-    labels are calculated from the decimal scores by applying a threshold above
-    which the residue is labeled disordered.
+    The pipeline will calculate metrics associated with both labels and scores
+    for all predictors when possible. Label metrics are calculated from files
+    given in y_label_paths. Labels can be computed on-the-fly from scores if
+    thresholds are given. (If labels, scores, and thresholds are given, the
+    pre-calculated labels are used.)
+
+    Metrics are calculated with two strategies. In the target strategy, each
+    metric is calculated for each protein individually, which are then
+    averaged to yield the overall metric for each predictor. These results are
+    saved as target.tsv and target_summary.tsv, respectively. Score metrics are
+    not calculated in the target strategy. In the dataset strategy, all
+    individual protein predictions are concatenated and treated as a single
+    sequence from which label and score metrics are calculated.
 
     Parameters
     ----------
     y_true_path: str
-        Path to true labels formatted as a FASTA-like binary where 1 and 0
-        indicate disorder and order, respectively.
-    y_pred_paths: 2-tuple of strings
-        The first element is predictor label and second element is the path to
-        the predicted labels. The predicted labels should either be formatted
-        as a FASTA-like binary or FASTA-like decimal file where the headers
-        are given as in FASTA files, but the score for each residue is given on
-         a separate line. These scores must be in [0, 1].
+        Path to true labels formatted as a FASTA-like  file where the headers
+        are given as in FASTA files, but the sequences are replaced with
+        binary (0, 1) labels indicating order and disorder, respectively
     accession_regex: str
         A regular expression to extract the accession from the header of each
         sequence in all files. The accession is extracted from the first group
         of the resulting match object, so it must be the first parenthesized
         subexpression.
+    y_label_paths: 2-tuple of strings
+        The first element is predictor label and second element is the path to
+        the predicted labels. The predicted labels should be formatted as a
+        FASTA-like file where the headers are given as in FASTA files, but the
+        sequences are replaced with binary (0, 1) labels.
+    y_score_paths: 2-tuple of strings
+        The first element is predictor label and second element is the path to
+        the predicted labels. The predicted labels should be formatted as a
+        FASTA-like file where the headers are given as in FASTA files, but the
+        score for each residue is given on a separate line.
     thresholds: float or dict
         If decimal value is greater than or equal to threshold, the residue is
         labeled as disordered for the calculation of binary metrics. If float,
@@ -262,66 +243,108 @@ def main(y_true_path, y_pred_paths, accession_regex, thresholds=0.5, visual=Fals
         No return value (i.e. None); output is written to output_path.
     """
     # Load true labels
-    y_true_records = load_binary(y_true_path, accession_regex)
-    for accession, labels in y_true_records.items():
-        if not is_binary(labels):
-            raise RuntimeError(f'Non-binary y_true labels detected: {accession}')
-    accessions = set(y_true_records)
-
-    # Make thresholds dict
-    predictors = set([predictor for predictor, _ in y_pred_paths])
-    if type(thresholds) == float:
-        default = thresholds
-        thresholds = {}
-        for predictor, _ in y_pred_paths:
-            thresholds[predictor] = default
-    elif type(thresholds) == dict:
-        if set(thresholds) != predictors:
-            raise RuntimeError('Thresholds do not match predictors in y_pred_paths')
-    else:
-        raise RuntimeError('Thresholds is not float or dict')
+    y_true_labels = load_labels(y_true_path, accession_regex)
+    accessions = set(y_true_labels)
 
     # Load predicted labels
-    y_pred_binaries, y_pred_decimals = {}, {}
-    for predictor, y_pred_path in y_pred_paths:
-        binary_bool = is_binary_file(y_pred_path)
-        if binary_bool:
-            y_pred_binary = load_binary(y_pred_path, accession_regex)
+    predictor_labels = {}
+    if y_label_paths is not None:
+        for predictor, path in y_label_paths:
+            y_pred_labels = load_labels(path, accession_regex)
+            if set(y_pred_labels) != accessions:
+                raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
+            predictor_labels[predictor] = y_pred_labels
+    elif y_score_paths is not None and thresholds is not None:
+        # Make thresholds dict
+        if type(thresholds) == float:
+            threshold = thresholds
+            thresholds = {predictor: threshold for predictor, _ in y_score_paths}
+        elif type(thresholds) != dict:
+            raise RuntimeError('Thresholds is not float or dict')
 
-            for accession, labels in y_pred_binary.items():
-                if not is_binary(labels):
-                    raise RuntimeError(f'Non-binary y_pred labels detected in {predictor}: {accession}')
-        else:
-            y_pred_decimal = load_decimal(y_pred_path, accession_regex)
-            y_pred_decimals[predictor] = y_pred_decimal
+        # Load scores and convert to labels
+        for predictor, path in y_score_paths:
+            try:
+                threshold = thresholds[predictor]
+            except KeyError:
+                continue
 
-            threshold = thresholds[predictor]
-            y_pred_binary = {}
-            for accession, values in y_pred_decimal.items():
-                y_pred_binary[accession] = [1 if value >= threshold else 0 for value in values]
+            y_pred_scores = load_scores(path, accession_regex)
+            y_pred_labels = {accession: [int(value >= threshold) for value in values] for accession, values in y_pred_scores.items()}
+            if set(y_pred_labels) != accessions:
+                raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
+            predictor_labels[predictor] = y_pred_labels
 
-        if set(y_pred_binary) != accessions:
-            raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
-        y_pred_binaries[predictor] = y_pred_binary
+    # Load predicted scores
+    predictor_scores = {}
+    if y_score_paths is not None:
+        for predictor, path in y_score_paths:
+            y_pred_scores = load_scores(path, accession_regex)
+            if set(y_pred_scores) != accessions:
+                raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
+            predictor_scores[predictor] = y_pred_scores
 
     # Make output directory
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    # Calculate binary metrics of individual proteins
+    # Calculate label metrics of individual proteins (target strategy)
     rows = []
-    for predictor, y_pred_records in y_pred_binaries.items():
-        for accession, y_pred in y_pred_records.items():
+    for predictor, y_pred_labels in predictor_labels.items():
+        for accession, y_pred in y_pred_labels.items():
             row = {'predictor': predictor, 'accession': accession}
-            row.update(get_binary_metrics(y_true_records[accession], y_pred))
+            row.update(get_label_metrics(y_true_labels[accession], y_pred))
             rows.append(row)
     target = pd.DataFrame(rows)
     target_summary = target.groupby('predictor').mean()
     target.to_csv(f'{output_path}/target.tsv', sep='\t', index=False)
     target_summary.to_csv(f'{output_path}/target_summary.tsv', sep='\t')
 
-    # Calculate binary and decimal metrics at the level of proteins
+    # Calculate label and score metrics aggregated by predictor (dataset strategy)
+    # Label metrics
     rows = []
-    for predictor in predictors:
-        y_pred_binary = y_pred_binaries[predictor]
-        merge = []
+    for predictor, y_pred_labels in predictor_labels.items():
+        row = {'predictor': predictor}
+
+        merge_pred, merge_true = [], []
+        for accession, y_pred in y_pred_labels.items():
+            merge_pred.extend(y_pred)
+            merge_true.extend(y_true_labels[accession])
+        row.update(get_label_metrics(merge_true, merge_pred))
+
+        rows.append(row)
+    labels = pd.DataFrame(rows)
+
+    # Score metrics
+    rows = []
+    for predictor, y_pred_scores in predictor_scores.items():
+        row = {'predictor': predictor}
+
+        merge_pred, merge_true = [], []
+        for accession, y_pred in y_pred_scores.items():
+            merge_pred.extend(y_pred)
+            merge_true.extend(y_true_labels[accession])
+        row.update(get_score_metrics(merge_true, merge_pred))
+
+        rows.append(row)
+    scores = pd.DataFrame(rows)
+
+    # Merge into single dataframe
+    if not labels.empty and not scores.empty:
+        dataset = labels.merge(scores, how='outer', on='predictor')
+    else:
+        dataset = labels if scores.empty else scores  # If both are empty, it doesn't matter which
+    dataset.to_csv(f'{output_path}/dataset.tsv', sep='\t', index=False)
+
+    # Plot visuals
+    if predictor_scores and visual:
+        records = []
+        for predictor, y_pred_scores in predictor_scores.items():
+            merge_true, merge_pred = [], []
+            for accession, y_pred in y_pred_scores.items():
+                merge_true.extend(y_true_labels[accession])
+                merge_pred.extend(y_pred)
+            records.append((predictor, merge_true, merge_pred))
+
+        plot_PR_curve(records, output_path)
+        plot_ROC_curve(records, output_path)
