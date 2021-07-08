@@ -195,7 +195,7 @@ def main(y_true_path, accession_regex,
     for all predictors when possible. Label metrics are calculated from files
     given in y_label_paths. Labels can be computed on-the-fly from scores if
     thresholds are given. (If labels, scores, and thresholds are given, the
-    pre-calculated labels are used.)
+    pre-calculated labels are used where available.)
 
     Metrics are calculated with two strategies. In the target strategy, each
     metric is calculated for each protein individually, which are then
@@ -254,7 +254,7 @@ def main(y_true_path, accession_regex,
             if set(y_pred_labels) != accessions:
                 raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
             predictor_labels[predictor] = y_pred_labels
-    elif y_score_paths is not None and thresholds is not None:
+    if y_score_paths is not None and thresholds is not None:
         # Make thresholds dict
         if type(thresholds) == float:
             threshold = thresholds
@@ -264,10 +264,9 @@ def main(y_true_path, accession_regex,
 
         # Load scores and convert to labels
         for predictor, path in y_score_paths:
-            try:
-                threshold = thresholds[predictor]
-            except KeyError:
-                continue
+            if predictor in predictor_labels or predictor not in thresholds:
+                continue  # Skip predictor if labels already loaded or threshold is not given
+            threshold = thresholds[predictor]
 
             y_pred_scores = load_scores(path, accession_regex)
             y_pred_labels = {accession: [int(value >= threshold) for value in values] for accession, values in y_pred_scores.items()}
@@ -289,52 +288,54 @@ def main(y_true_path, accession_regex,
         os.makedirs(output_path)
 
     # Calculate label metrics of individual proteins (target strategy)
-    rows = []
-    for predictor, y_pred_labels in predictor_labels.items():
-        for accession, y_pred in y_pred_labels.items():
-            row = {'predictor': predictor, 'accession': accession}
-            row.update(get_label_metrics(y_true_labels[accession], y_pred))
-            rows.append(row)
-    target = pd.DataFrame(rows)
-    target_summary = target.groupby('predictor').mean()
-    target.to_csv(f'{output_path}/target.tsv', sep='\t', index=False)
-    target_summary.to_csv(f'{output_path}/target_summary.tsv', sep='\t')
+    if predictor_labels:
+        rows = []
+        for predictor, y_pred_labels in predictor_labels.items():
+            for accession, y_pred in y_pred_labels.items():
+                row = {'predictor': predictor, 'accession': accession}
+                row.update(get_label_metrics(y_true_labels[accession], y_pred))
+                rows.append(row)
+        target = pd.DataFrame(rows)
+        target_summary = target.groupby('predictor').mean()
+        target.to_csv(f'{output_path}/target.tsv', sep='\t', index=False)
+        target_summary.to_csv(f'{output_path}/target_summary.tsv', sep='\t')
 
     # Calculate label and score metrics aggregated by predictor (dataset strategy)
     # Label metrics
-    rows = []
-    for predictor, y_pred_labels in predictor_labels.items():
-        row = {'predictor': predictor}
+    if predictor_labels or predictor_scores:
+        rows = []
+        for predictor, y_pred_labels in predictor_labels.items():
+            row = {'predictor': predictor}
 
-        merge_pred, merge_true = [], []
-        for accession, y_pred in y_pred_labels.items():
-            merge_pred.extend(y_pred)
-            merge_true.extend(y_true_labels[accession])
-        row.update(get_label_metrics(merge_true, merge_pred))
+            merge_pred, merge_true = [], []
+            for accession, y_pred in y_pred_labels.items():
+                merge_pred.extend(y_pred)
+                merge_true.extend(y_true_labels[accession])
+            row.update(get_label_metrics(merge_true, merge_pred))
 
-        rows.append(row)
-    labels = pd.DataFrame(rows)
+            rows.append(row)
+        labels = pd.DataFrame(rows)
 
-    # Score metrics
-    rows = []
-    for predictor, y_pred_scores in predictor_scores.items():
-        row = {'predictor': predictor}
+        # Score metrics
+        rows = []
+        for predictor, y_pred_scores in predictor_scores.items():
+            row = {'predictor': predictor}
 
-        merge_pred, merge_true = [], []
-        for accession, y_pred in y_pred_scores.items():
-            merge_pred.extend(y_pred)
-            merge_true.extend(y_true_labels[accession])
-        row.update(get_score_metrics(merge_true, merge_pred))
+            merge_pred, merge_true = [], []
+            for accession, y_pred in y_pred_scores.items():
+                merge_pred.extend(y_pred)
+                merge_true.extend(y_true_labels[accession])
+            row.update(get_score_metrics(merge_true, merge_pred))
 
-        rows.append(row)
-    scores = pd.DataFrame(rows)
+            rows.append(row)
+        scores = pd.DataFrame(rows)
 
-    # Merge into single dataframe
-    if not labels.empty and not scores.empty:
-        dataset = labels.merge(scores, how='outer', on='predictor')
-    else:
-        dataset = labels if scores.empty else scores  # If both are empty, it doesn't matter which
-    dataset.to_csv(f'{output_path}/dataset.tsv', sep='\t', index=False)
+        # Merge into single dataframe
+        if not labels.empty and not scores.empty:
+            dataset = labels.merge(scores, how='outer', on='predictor')
+        else:
+            dataset = labels if scores.empty else scores  # If both are empty, it doesn't matter which
+        dataset.to_csv(f'{output_path}/dataset.tsv', sep='\t', index=False)
 
     # Plot visuals
     if predictor_scores and visual:
