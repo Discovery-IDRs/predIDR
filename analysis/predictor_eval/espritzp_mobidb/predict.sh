@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run Espritz on individual FASTA files
+# Run Espritz on individual FASTA files in profile mode
 
 # Unpack args
 espritz_path=$1
