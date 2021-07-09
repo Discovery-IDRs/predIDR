@@ -187,6 +187,16 @@ def load_scores(path, regex):
     return records
 
 
+def check_accessions(y_true_accessions, y_pred_accessions, predictor='predictor'):
+    """Raises error if y_pred_accessions is not a subset of y_true_accessions."""
+    if not y_pred_accessions <= y_true_accessions:
+        raise RuntimeError(
+            f'y_pred accessions for {predictor} are not a subset of between y_true accessions and y_pred accessions')
+    if y_pred_accessions != y_true_accessions:
+        accessions = '\n'.join([accession for accession in (y_true_accessions - y_pred_accessions)])
+        print(f'Warning: The following accessions are found in y_true but not y_pred for {predictor}:\n' + accessions)
+
+
 def main(y_true_path, accession_regex,
          y_label_paths=None, y_score_paths=None, thresholds=None, visual=False, output_path='out/'):
     """Executes the full metrics pipeline.
@@ -244,15 +254,14 @@ def main(y_true_path, accession_regex,
     """
     # Load true labels
     y_true_labels = load_labels(y_true_path, accession_regex)
-    accessions = set(y_true_labels)
+    y_true_accessions = set(y_true_labels)
 
     # Load predicted labels
     predictor_labels = {}
     if y_label_paths is not None:
         for predictor, path in y_label_paths:
             y_pred_labels = load_labels(path, accession_regex)
-            if set(y_pred_labels) != accessions:
-                raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
+            check_accessions(y_true_accessions, set(y_pred_labels), predictor)
             predictor_labels[predictor] = y_pred_labels
     if y_score_paths is not None and thresholds is not None:
         # Make thresholds dict
@@ -270,8 +279,7 @@ def main(y_true_path, accession_regex,
 
             y_pred_scores = load_scores(path, accession_regex)
             y_pred_labels = {accession: [int(value >= threshold) for value in values] for accession, values in y_pred_scores.items()}
-            if set(y_pred_labels) != accessions:
-                raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
+            check_accessions(y_true_accessions, set(y_pred_labels), predictor)
             predictor_labels[predictor] = y_pred_labels
 
     # Load predicted scores
@@ -279,8 +287,7 @@ def main(y_true_path, accession_regex,
     if y_score_paths is not None:
         for predictor, path in y_score_paths:
             y_pred_scores = load_scores(path, accession_regex)
-            if set(y_pred_scores) != accessions:
-                raise RuntimeError(f'Mismatch between y_true accessions and y_pred accessions in {predictor}')
+            check_accessions(y_true_accessions, set(y_pred_scores), predictor)
             predictor_scores[predictor] = y_pred_scores
 
     # Make output directory
