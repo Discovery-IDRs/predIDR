@@ -88,26 +88,26 @@ def make_generative_model():
     model.add(keras.layers.BatchNormalization())
     model.add(keras.layers.LeakyReLU())
 
-    model.add(keras.layers.Reshape((7, 7, 256)))
-    assert model.output_shape == (None, 7, 7, 256)  # Note: None is the batch size
+    model.add(keras.layers.Reshape((1495, 180, 12544)))
+    #assert model.output_shape == (None, 7, 7, 256)  # Note: None is the batch size
 
     model.add(keras.layers.Conv2DTranspose(128, (5, 5), strides=(1, 1), padding='same', use_bias=False))
-    assert model.output_shape == (None, 7, 7, 128)
+    #assert model.output_shape == (None, 7, 7, 128)
     model.add(keras.layers.BatchNormalization())
     model.add(keras.layers.LeakyReLU())
 
     model.add(keras.layers.Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-    assert model.output_shape == (None, 14, 14, 64)
+    #assert model.output_shape == (None, 14, 14, 64)
     model.add(keras.layers.BatchNormalization())
     model.add(keras.layers.LeakyReLU())
 
     model.add(keras.layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
-    assert model.output_shape == (None, 28, 28, 1)
+    #assert model.output_shape == (None, 28, 28, 1)
 
     return model
 
 generator = make_generative_model()
-noise = tf.random.normal([1, batch_shape])
+noise = tf.random.normal([12544, 1])
 generated_image = generator(noise, training=False)
 plt.imshow(generated_image[0,:,:,0], cmap='gray')
 
