@@ -1,8 +1,8 @@
-import os
-
 import Bio.SeqIO as SeqIO
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
+import matplotlib.pyplot as plt
 
 
 def load_data(seqs_path, labels_path):
@@ -45,7 +45,7 @@ def convert_ohc(seqs):
     x = []
     # convert string amino acid string characters into int list
     for _, seq in seqs:
-        seq_idx = [sym_codes[sym] for sym in seq]
+        seq_idx = [sym_codes.index(sym) for sym in seq]
         x.append(seq_idx)
 
     # convert list into numpy array and one hot encode int array
@@ -59,17 +59,62 @@ sym_codes = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
              'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 
 # Load data
-train_seqs, train_labels = load_data('../inpainting_mobidb/out/unmasked_seq_file.fasta',
-                                     '../inpainting_mobidb/out/label.fasta')
-validation_seqs, validation_labels = ...
-test_seqs, test_labels = ...
+train_seqs, train_labels = load_data('../inpainting_mobidb/out/train_seq.fasta',
+                                     '../inpainting_mobidb/out/train_label.fasta')
+
+valid_seqs, valid_labels = load_data('../inpainting_mobidb/out/validation_seq.fasta',
+                                     '../inpainting_mobidb/out/validation_label.fasta')
+
+test_seqs, test_labels = load_data('../inpainting_mobidb/out/test_seq.fasta',
+                                     '../inpainting_mobidb/out/test_label.fasta')
 
 # convert character array to numpy array and one hot encode the sequences
 x_train = convert_ohc(train_seqs)
-...
+x_test = convert_ohc(test_seqs)
+x_valid = convert_ohc(valid_seqs)
 
 y_train = np.array([list(label) for _, label in train_labels])
-...
+y_test = np.array([list(label) for _, label in test_labels])
+y_valid = np.array([list(label) for _, label in valid_labels])
+
+#'batch' size and shape
+batch_len = len(x_train)
+batch_shape = x_train.shape
+
+# make generative model, architecture used from tensorflow tutorial https://www.tensorflow.org/tutorials/generative/dcgan
+def make_generative_model():
+    model = tf.keras.Sequential()
+    model.add(keras.layers.Dense(7 * 7 * 256, use_bias=False, input_shape=batch_shape))
+    model.add(keras.layers.BatchNormalization())
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(keras.layers.Reshape((7, 7, 256)))
+    assert model.output_shape == (None, 7, 7, 256)  # Note: None is the batch size
+
+    model.add(keras.layers.Conv2DTranspose(128, (5, 5), strides=(1, 1), padding='same', use_bias=False))
+    assert model.output_shape == (None, 7, 7, 128)
+    model.add(keras.layers.BatchNormalization())
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(keras.layers.Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+    assert model.output_shape == (None, 14, 14, 64)
+    model.add(keras.layers.BatchNormalization())
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(keras.layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
+    assert model.output_shape == (None, 28, 28, 1)
+
+    return model
+
+generator = make_generative_model()
+noise = tf.random.normal([1, batch_shape])
+generated_image = generator(noise, training=False)
+plt.imshow(generated_image[0,:,:,0], cmap='gray')
+
+
+
+#Training Model
+
 
 # model.fit(input,taget, batcsize, epochs)
 # input = x, target = y, batchsize = whatever, epochs = whatever
@@ -101,33 +146,3 @@ y_train = np.array([list(label) for _, label in train_labels])
 
 #
 
-
-# training the data
-histories = []
-validation_metrics = []
-for i in range(10):
-    # Fit
-    print(f'EPOCH {i}')
-    history = model.fit(train_batches, epochs=1)
-    histories.append(history)
-
-    # Evaluate
-    total = 0
-    l_count = 0
-    for batch in validation_batches:
-        true_labels = batch[1]
-        pred_labels = model.predict(batch[0])
-        for true_label, pred_label in zip(true_labels, pred_labels):
-            idxs = true_label.sum(axis=1).astype(bool)
-            total += idxs.sum()
-            l_count += (np.argmax(true_label[idxs], axis=1) == np.argmax(pred_label[idxs], axis=1)).sum()
-    validation_metrics.append({'total': total, 'l_count': l_count})
-
-    print('LABEL ACCURACY:', l_count / total)
-    print()
-
-# Save model
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
-model.save('out/model')
