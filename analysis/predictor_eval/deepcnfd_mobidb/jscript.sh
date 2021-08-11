@@ -19,8 +19,14 @@ source /global/home/users/singleton/.bashrc
 conda activate predIDR
 module load gnu-parallel
 
-if [ ! -d out/ ]; then
-  mkdir out/
+# Link to output in scratch
+if [ ! -d out ]; then
+  out_dir=/global/scratch/singleton/predIDR/analysis/predictor_eval/deepcnfd_mobidb/out/
+  if [ ! -d ${out_dir} ]; then
+    mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
+  fi
+  ln -s ${out_dir} out
 fi
+
 fasta_dir=../../mobidb_validation/format_seqs/out/seqs/
 parallel -j $SLURM_CPUS_ON_NODE bash predict.sh ../../../bin/DeepCNF_D_v1.00/DeepCNF_D.sh $fasta_dir/{} out/ ::: $(ls $fasta_dir)
