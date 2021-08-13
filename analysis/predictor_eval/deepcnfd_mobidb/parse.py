@@ -7,7 +7,6 @@ for path in sorted(os.listdir('out/raw/')):
     # Parse raw output to scores and labels
     accession = path.split('.')[0]
     with open(f'out/raw/{accession}.diso') as file:
-        star_count = 0
         scores, labels = [], []
         for line in file:
             if not line.startswith('\n') and not line.startswith('#'):  # If not empty and not comment
