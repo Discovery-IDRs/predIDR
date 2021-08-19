@@ -212,7 +212,13 @@ plt.yscale('log')
 plt.savefig('out/hist_numprot-numdis2_log.png')
 plt.close()
 
-# 7 Amino acid distributions and enrichment
+# 7 Total fraction ordered and disordered residues
+plt.pie([order['len'].sum(), disorder['len'].sum()], labels=['order', 'disorder'], autopct='%1.0f%%')
+plt.title('Residues by label')
+plt.savefig('out/pie_labels.png')
+plt.close()
+
+# 8 Amino acid distributions and enrichment
 aa_codes = ['D', 'E', 'H', 'K', 'R', 'N', 'Q', 'S', 'T', 'A',
             'I', 'L', 'M', 'V', 'F', 'W', 'Y', 'C', 'G', 'P',
             'O', 'U', 'B', 'Z', 'X', 'J']
@@ -228,14 +234,14 @@ aa_counts_disorder = df1.loc[df1['segment_type'] == 'D', aa_codes].sum()
 aa_fracs_disorder = aa_counts_disorder / aa_counts_disorder.sum()
 plt.bar(aa_codes, aa_fracs_disorder)
 plt.ylabel('Fraction composition in disordered segments')
-plt.xlabel('Amino acids')
+plt.xlabel('Amino acid')
 plt.savefig('out/bar_aacomp_dis.png')
 plt.close()
 
 aa_fracs_delta = aa_fracs_disorder - aa_fracs
 plt.bar(aa_codes, aa_fracs_delta)
 plt.ylabel('Difference in fraction composition')
-plt.xlabel('Amino acids')
+plt.xlabel('Amino acid')
 plt.savefig('out/bar_aacomp_delta.png')
 plt.close()
 
