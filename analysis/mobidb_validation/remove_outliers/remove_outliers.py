@@ -49,12 +49,12 @@ with open('out/mobidb_labels.fasta', 'w') as file:
     for header, seq in fastas:
         accession = header.split('|')[0][1:]  # Trim >
         if accession not in outliers:
-            seq1 = [int(sym) for sym in str(seq)]
-            seq2 = ['0' for _ in range(len(seq1))]
+            seq1 = [1 if sym == '1' else 0 for sym in seq]
+            seq2 = [sym for sym in seq]
             labels = ndimage.label(seq1)[0]
             for s, in ndimage.find_objects(labels):  # Unpack 1-tuple
-                if s.stop - s.start >= 10:
-                    seq2[s.start:s.stop] = (s.stop-s.start) * ['1']
+                if s.stop - s.start < 10:
+                    seq2[s.start:s.stop] = (s.stop-s.start) * ['0']
             seq = ''.join(seq2)
             seqstring = '\n'.join(seq[i:i+80] for i in range(0, len(seq), 80))
             file.write(header + seqstring + '\n')
