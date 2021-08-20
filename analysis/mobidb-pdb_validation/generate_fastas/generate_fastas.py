@@ -30,6 +30,9 @@ def extract_features(fasta, label_name):
         if 'sequence' in header:
             features[accession]['seq_header'] = header
             features[accession]['seq'] = seq
+        if 'derived-observed-th_90' in header:
+            features[accession]['observed_header'] = header
+            features[accession]['observed'] = seq
         if label_name in header:
             features[accession]['label_header'] = header
             features[accession]['label'] = seq
@@ -49,8 +52,21 @@ accessions = set(curated_features) | set(missing_features) | set(mobile_features
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-with open('out/mobidb_seqs.fasta', 'w') as seqs_file, open('out/mobidb_labels.fasta', 'w') as labels_file:
+with open('out/mobidb-pdb_seqs.fasta', 'w') as seqs_file, open('out/mobidb-pdb_labels.fasta', 'w') as labels_file:
     for accession in sorted(accessions):
+        # Check for observed labels
+        observes = []
+        for features in [curated_features, missing_features, mobile_features]:
+            try:
+                observes.append(features[accession]['observed'])
+            except KeyError:
+                pass
+        if not observes:
+            continue
+        if any([observes[0] != observed for observed in observes[1:]]):
+            raise RuntimeError('Observed sequences do not match across records.')
+        observe = observes[0]
+
         # Get seq and disorder labels
         if accession in curated_features:
             features = curated_features[accession]
@@ -63,7 +79,7 @@ with open('out/mobidb_seqs.fasta', 'w') as seqs_file, open('out/mobidb_labels.fa
         elif (accession not in missing_features) and (accession in mobile_features):
             features = mobile_features[accession]
             seq_header, label_header = features['seq_header'], features['label_header']
-            seq, label = features['seq'], features['label']
+            seq, label, observed = features['seq'], features['label'], features['observed']
         else:  # Otherwise must be in both
             # Unpack features
             features1 = missing_features[accession]
@@ -86,6 +102,17 @@ with open('out/mobidb_seqs.fasta', 'w') as seqs_file, open('out/mobidb_labels.fa
                     syms.append('1')
             seq_header, label_header = seq_header1, label_header1.replace('derived-missing_residues-th_90', 'derived-merge')
             seq, label = seq1, ''.join(syms)
+
+        # Merge disorder and observed labels
+        syms = []
+        for sym1, sym2 in zip(label, observe):
+            if sym1 == '1':
+                syms.append('1')
+            elif sym2 == '1':
+                syms.append('0')
+            else:
+                syms.append('-')
+        label = ''.join(syms)
 
         # Write labels to file
         seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
