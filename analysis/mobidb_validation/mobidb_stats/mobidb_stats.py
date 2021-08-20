@@ -140,11 +140,11 @@ df2 = protein1[['accession', 'len']].merge(disorder_lengths, on='accession', how
 df2['D_frac'] = df2['D_len'] / df2['len']
 
 plt.hist(df2['D_frac'], bins=50)
-plt.ylabel('Number of segments')
+plt.ylabel('Number of proteins')
 plt.xlabel('Fraction disordered')
-plt.savefig('out/hist_numseg_fracdis.png')
+plt.savefig('out/hist_numprot_fracdis.png')
 plt.yscale('log')
-plt.savefig('out/hist_numseg_fracdis_log.png')
+plt.savefig('out/hist_numprot_fracdis_log.png')
 plt.close()
 
 # 3 Fraction ordered distribution
@@ -153,11 +153,11 @@ df2 = df2.merge(order_lengths, on='accession', how='left').fillna(0)
 df2['O_frac'] = df2['O_len'] / df2['len']
 
 plt.hist(df2['O_frac'], bins=50)
-plt.ylabel('Number of segments')
+plt.ylabel('Number of proteins')
 plt.xlabel('Fraction ordered')
-plt.savefig('out/hist_numseg_fracord.png')
+plt.savefig('out/hist_numprot_fracord.png')
 plt.yscale('log')
-plt.savefig('out/hist_numseg_fracord_log.png')
+plt.savefig('out/hist_numprot_fracord_log.png')
 plt.close()
 
 # 4 Scatter of fraction disordered with number of disordered segments

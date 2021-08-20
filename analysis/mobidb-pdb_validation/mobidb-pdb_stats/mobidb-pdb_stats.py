@@ -1,7 +1,6 @@
-"""Calculate and plot various statistics related to DisProt sequences and annotations."""
+"""Calculate and plot various statistics related to MobiDB sequences and annotations."""
 
 import os
-import re
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -49,12 +48,12 @@ def count_amino_acids(aa_seq):
 
 
 seqs_dict = {}
-for header, seq in load_fasta('../generate_fastas/out/disprot_seqs.fasta'):
-    accession = re.search(r'disprot_id:(DP[0-9]+)', header).group(1)
+for header, seq in load_fasta('../generate_fastas/out/mobidb-pdb_seqs.fasta'):
+    accession = header.split('|')[0][1:]  # Trim >
     seqs_dict[accession] = seq
 labels_dict = {}
-for header, seq in load_fasta('../generate_fastas/out/disprot_labels.fasta'):
-    accession = re.search(r'disprot_id:(DP[0-9]+)', header).group(1)
+for header, seq in load_fasta('../generate_fastas/out/mobidb-pdb_labels.fasta'):
+    accession = header.split('|')[0][1:]  # Trim >
     labels_dict[accession] = seq
 
 rows = []
@@ -62,16 +61,20 @@ for accession, label in labels_dict.items():
     seq = seqs_dict[accession]
     disorder_labels = [sym == '1' for sym in label]
     order_labels = [sym == '0' for sym in label]
+    missing_labels = [sym == '-' for sym in label]
 
     # Disordered regions have the code 'D' and ordered regions have the code 'O'
+    # Missing regions have the code 'M'
     # The entire protein is added with the code 'P'
     ds_disorder = get_segments(seq, disorder_labels, 'D', accession)
     ds_order = get_segments(seq, order_labels, 'O', accession)
+    ds_missing = get_segments(seq, missing_labels, 'M', accession)
     ds_protein = get_segments(seq, [True for _ in range(len(seq))], 'P', accession)
 
     # Add ds to rows
     rows.extend(ds_disorder)
     rows.extend(ds_order)
+    rows.extend(ds_missing)
     rows.extend(ds_protein)
 df1 = pd.DataFrame(rows)
 
@@ -119,6 +122,16 @@ plt.yscale('log')
 plt.savefig('out/hist_numord-numres_log.png')
 plt.close()
 
+# Length distribution of missing segments
+missing = df1[df1['segment_type'] == 'M']
+plt.hist(missing['len'], bins=50)
+plt.ylabel('Number of missing segments')
+plt.xlabel('Number of residues')
+plt.savefig('out/hist_nummiss-numres.png')
+plt.yscale('log')
+plt.savefig('out/hist_nummiss-numres_log.png')
+plt.close()
+
 # Short segment stats
 short = disorder[disorder['len'] < 10]
 long = disorder[disorder['len'] >= 10]
@@ -161,7 +174,20 @@ plt.yscale('log')
 plt.savefig('out/hist_numprot_fracord_log.png')
 plt.close()
 
-# 4 Scatter of fraction disordered with number of disordered segments
+# 4 Fraction missing distribution
+missing_lengths = missing.groupby('accession')['len'].sum().rename('M_len')
+df2 = df2.merge(missing_lengths, on='accession', how='left').fillna(0)
+df2['M_frac'] = df2['M_len'] / df2['len']
+
+plt.hist(df2['M_frac'], bins=50)
+plt.ylabel('Number of proteins')
+plt.xlabel('Fraction missing')
+plt.savefig('out/hist_numprot_fracmiss.png')
+plt.yscale('log')
+plt.savefig('out/hist_numprot_fracmiss_log.png')
+plt.close()
+
+# 5 Scatter of fraction disordered with number of disordered segments
 D_segnum = disorder.groupby('accession').size().rename('D_segnum')
 df2 = df2.merge(D_segnum, on='accession', how='left').fillna(0)
 
@@ -179,7 +205,7 @@ plt.xlabel('Number of disordered segments')
 plt.savefig('out/scatter_fracdis-numdis2.png')
 plt.close()
 
-# 5 Scatter of average length of disordered segments with number of disordered segments
+# 6 Scatter of average length of disordered segments with number of disordered segments
 df3 = disorder[['accession', 'len']].groupby('accession').mean().merge(D_segnum, on='accession')
 plt.scatter(df3['D_segnum'], df3['len'], s=6, alpha=0.25, edgecolors='none')
 plt.ylabel('Average length of disordered segments')
@@ -195,7 +221,7 @@ plt.xlabel('Number of disordered segments')
 plt.savefig('out/scatter_numdis-lendis2.png')
 plt.close()
 
-# 6 Number disordered segments distribution
+# 7 Number disordered segments distribution
 plt.hist(df2['D_segnum'], bins=50)
 plt.ylabel('Number of proteins')
 plt.xlabel('Number of disordered segments')
@@ -213,13 +239,14 @@ plt.yscale('log')
 plt.savefig('out/hist_numprot-numdis2_log.png')
 plt.close()
 
-# 7 Total fraction ordered and disordered residues
-plt.pie([order['len'].sum(), disorder['len'].sum()], labels=['order', 'disorder'], autopct='%1.0f%%')
+# 8 Total fraction ordered and disordered residues
+plt.pie([order['len'].sum(), disorder['len'].sum(), missing['len'].sum()],
+        labels=['order', 'disorder', 'missing'], autopct='%1.0f%%')
 plt.title('Residues by label')
 plt.savefig('out/pie_labels.png')
 plt.close()
 
-# 8 Amino acid distributions and enrichment
+# 9 Amino acid distributions and enrichment
 aa_codes = ['D', 'E', 'H', 'K', 'R', 'N', 'Q', 'S', 'T', 'A',
             'I', 'L', 'M', 'V', 'F', 'W', 'Y', 'C', 'G', 'P',
             'O', 'U', 'B', 'Z', 'X', 'J']
@@ -252,17 +279,17 @@ ns_codes[ns_codes['sum'] > 0].to_csv('out/ns_codes.tsv', sep='\t', index=False)
 
 """
 OUTPUT
-Number of short segments: 0
-Fraction of short of total segments: 0.0
+Number of short segments: 48783
+Fraction of short of total segments: 0.6674191429978658
 
-Number of unique "short" proteins: 0
-Fraction of unique "short" proteins of total proteins: 0.0
+Number of unique "short" proteins: 29137
+Fraction of unique "short" proteins of total proteins: 0.8094060781154508
 
-Number of unique "long" proteins: 1588
-Fraction of unique "long" proteins of total proteins: 1.0
+Number of unique "long" proteins: 16463
+Fraction of unique "long" proteins of total proteins: 0.4573309628312684
 
-Number of "long" residues: 173098
-Fraction of "long" residues of total residues: 1.0
+Number of "long" residues: 887900
+Fraction of "long" residues of total residues: 0.8293340855468524
 
 DEPENDENCIES
 ../generate_fastas/generate_fastas.py
