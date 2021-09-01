@@ -21,7 +21,7 @@ module load gnu-parallel
 
 # Link to output in scratch
 if [ ! -d out ]; then
-  out_dir=/global/scratch/singleton/predIDR/analysis/predictor_eval/espritzp_disprot/out/
+  out_dir=/global/scratch/users/predIDR/analysis/predictor_eval/espritzp_disprot/out/
   if [ ! -d ${out_dir} ]; then
     mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
   fi
