@@ -1,6 +1,7 @@
 import Bio.SeqIO as SeqIO
 import numpy as np
 import tensorflow as tf
+from itertools import product
 
 # Parameters
 BATCH_NUM = 10
@@ -59,6 +60,14 @@ def seq_to_OHE(seq):
 
 def OHE_to_seq(ohe):
     pass
+    #x = np.argmax(ohe, axis= 1)
+    #for indices in x:
+       # seq = []
+        #for index in indices:
+            #sym = sym_codes[index]
+            #sym.append(sym)
+    #return seq
+
 
 
 # MODELS
@@ -228,8 +237,18 @@ def train_step(context, target, weight):
         generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
         discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
+def decode(x, sym_codes):
+    for indices in x:
+        syms = []
+        for index in indices:
+            sym = sym_codes[index]
+            sym.append(sym)
+    return syms
+
+
 
 def train(context, target, weight, epochs):
+    print("training started")
     # Batch data
     context_batch = np.array_split(context, BATCH_NUM)
     target_batch = np.array_split(target, BATCH_NUM)
@@ -243,14 +262,35 @@ def train(context, target, weight, epochs):
             train_step(context, target, weight)
 
 
+
+
+
 # Load data and train
 train_seq, train_label = load_data(train_seq_path, train_label_path)
 train_context, train_weight = get_context_weight(train_seq, train_label)
 
-train(train_context, train_seq, train_weight, 10)
+train(train_context, train_seq, train_weight, 100)
 
 # Examine output of trained network
 real_target = train_seq
 fake_target = generator(train_context).numpy()
 real_output = discriminator(train_seq*train_weight).numpy()
 fake_output = discriminator(fake_target*train_weight).numpy()
+
+
+equality_target = np.argmax(real_target*train_weight, axis=2) == np.argmax(fake_target*train_weight, axis=2)
+sum_context = np.sum(np.invert(train_weight) + 2)
+len_target = np.sum(train_weight)
+symbol_acc = (np.sum(equality_target)-sum_context)/len_target
+
+print(symbol_acc)
+
+#for ind in range(len(real_target)):
+    #real_seq = OHE_to_seq(real_target[ind])
+    #fake_seq = OHE_to_seq(fake_target[ind])
+    #correct_aa = 0
+    #for ind in range(len(real_seq)):
+        #if real_seq[ind] == fake_seq[ind]:
+            #correct_aa += 1
+
+    #print(correct_aa/range(len(real_seq)))
