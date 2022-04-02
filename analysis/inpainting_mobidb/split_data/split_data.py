@@ -73,7 +73,7 @@ validation = protein_lst[train_length+test_length:]  # Validation gets remainder
 
 
 # Create out directory to put fasta files in
-data_path = "out/"
+data_path = "../out/"
 if not os.path.exists(data_path):
         os.mkdir(data_path)
 

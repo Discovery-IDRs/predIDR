@@ -1,0 +1,7 @@
+#import codeblock
+import pandas as pd
+
+metrics_path = "out/metrics.tsv"
+
+metrics_df = pd.read_csv(metrics_path)
+

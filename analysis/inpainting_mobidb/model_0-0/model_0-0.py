@@ -1,15 +1,18 @@
+import os
+
 import Bio.SeqIO as SeqIO
 import numpy as np
 import tensorflow as tf
-from itertools import product
+import pandas as pd
 
 # Parameters
 BATCH_NUM = 10
 sym_codes = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
              'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 sym2idx = {i: sym for i, sym in enumerate(sym_codes)}
-train_seq_path = 'out/unmasked_seq_file.fasta'
-train_label_path = 'out/label.fasta'
+train_seq_path = '../extract_data/out/unmasked_seq_file.fasta'
+train_label_path = '../extract_data/out/label.fasta'
+
 
 
 # Utility functions
@@ -255,35 +258,53 @@ def train(context, target, weight, epochs):
     weight_batch = np.array_split(weight, BATCH_NUM)
 
     # Training loop
+    records = []
     for epoch in range(epochs):
         print(f'EPOCH {epoch}')
         for batch, (context, target, weight) in enumerate(zip(context_batch, target_batch, weight_batch)):
             print(f'\tBATCH {batch}')
             train_step(context, target, weight)
 
+        # Get targets and outputs
+        real_target = target
+        fake_target = generator(context)
+        real_output = discriminator(real_target*weight).numpy()
+        fake_output = discriminator(fake_target*weight).numpy()
+
+        # Calculate metrics
+        equality_target = np.argmax(real_target*weight, axis=2) == np.argmax(fake_target*weight, axis=2)
+        sum_context = np.sum(np.invert(weight) + 2)
+        len_target = np.sum(weight)
+        symbol_acc = (np.sum(equality_target) -sum_context)/len_target
 
 
+        # Append record to records
+        record = {'epoch': epoch, 'accuracy': symbol_acc, 'generator loss': generator_loss(fake_output, fake_target, real_target, weight).numpy(),
+                  'discriminator loss': discriminator_loss(real_output, fake_output).numpy()}
+        print(record)
+        # training loss
+        records.append(record)
+
+        print(f'\tSYMB ACC {symbol_acc}')
+
+    df = pd.DataFrame(records)
+    return df
 
 
 # Load data and train
+if not os.path.exists('../out/'):
+    os.mkdir('../out/')
+
 train_seq, train_label = load_data(train_seq_path, train_label_path)
 train_context, train_weight = get_context_weight(train_seq, train_label)
 
-train(train_context, train_seq, train_weight, 100)
+df_data = train(train_context, train_seq, train_weight, 10)
+df_data.to_csv('out/metrics.tsv', index=False, sep='\t')
 
-# Examine output of trained network
-real_target = train_seq
-fake_target = generator(train_context).numpy()
-real_output = discriminator(train_seq*train_weight).numpy()
-fake_output = discriminator(fake_target*train_weight).numpy()
+generator.save('out/generator_model.h5')
+discriminator.save('out/discriminator_model.h5')
 
-
-equality_target = np.argmax(real_target*train_weight, axis=2) == np.argmax(fake_target*train_weight, axis=2)
-sum_context = np.sum(np.invert(train_weight) + 2)
-len_target = np.sum(train_weight)
-symbol_acc = (np.sum(equality_target)-sum_context)/len_target
-
-print(symbol_acc)
+#create another script to run the csv files and create plots for epoch vs. loss
 
 #for ind in range(len(real_target)):
     #real_seq = OHE_to_seq(real_target[ind])
