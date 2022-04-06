@@ -1,110 +1,74 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
+"""Extract disordered regions within length limits from MobiDB data."""
 
 import os
 
 import scipy.ndimage as ndimage
 from Bio import SeqIO
 
+# Create variables determined from inpainting_exploration.ipynb of upper and lower limit of length of disordered regions
+LOWER_LIMIT = 30
+UPPER_LIMIT = 90
+TOTAL_LENGTH = 180
 
-# In[2]:
+# Set path of previously created fasta files of amino acid sequence and labels
+fasta_seqs = SeqIO.parse("../../mobidb_validation/generate_fastas/out/mobidb_seqs.fasta", "fasta")
+fasta_labels = SeqIO.parse("../../mobidb_validation/generate_fastas/out/mobidb_labels.fasta", "fasta")
 
+# Create dictionary with key-value pair, "accession" : ["amino_acid_sequence", "disorder_labels"]
+input_records = {}
 
-# Set path of previously created fasta files of amino acid sequence and labels 
-fasta_seq = SeqIO.parse('../../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
-fasta_disorder = SeqIO.parse('../../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
+# Load amino acid sequences into dictionary
+for record in fasta_seqs:
+    accession = record.id.split("|")[0]
+    input_records[accession] = str(record.seq)
 
+# Edit dictionary to include amino labels and descriptions
+for record in fasta_labels:
+    accession = record.id.split("|")[0]
+    input_records[accession] = [input_records[accession], str(record.seq)]
 
-# In[3]:
-
-
-# Create dictionary with key-value pair, "protein_accession" : ["amino_acid_sequence", "protein_labels", "description"] 
-protein_dict = {}
-# Load amino acid sequences into dictionary from allseq.fasta 
-for protein in fasta_seq:
-    protein_dict[protein.id.split("|")[0]] = [str(protein.seq)]
-# Edit dictionary to include amino acid sequence, labels, and descriptions from alldisorder.fasta 
-for protein in fasta_disorder:
-    accession = protein.id.split("|")[0]
-    protein_dict[accession] = protein_dict.get(accession) + [str(protein.seq)] + [protein.description]
-
-
-# In[4]:
-
-
-# Create out directory to put fasta files in 
-data_path = "../out/"
-if not os.path.exists(data_path):
-        os.mkdir(data_path)
-
-
-# In[5]:
-
-
-# Create fasta file with labels and unmasked amino acid sequences 
-labels_file = open(data_path + "label.fasta", "w+")
-unmasked_seq_file = open(data_path + "unmasked_seq_file.fasta", "w+")
-
-
-# In[6]:
-
-
-# Create variables determined from inpainting_exploration.ipynb of upper and lower limit of length of disordered region
-dis_lower_limit = 30
-dis_upper_limit = 90
-len_residue = 180
-
-# List to store proteins in dataset that fulfil requirements to check the number of proteins
-unique_protein = set()
-uniuqe_not_protein = set()
-nonunique_protein = []
-
-# Iterate through all proteins 
-for protein_id in protein_dict:
-    
+# Iterate through all proteins
+output_records = []
+for accession, record in input_records.items():
     # Find the disordered regions of the protein
-    label = protein_dict.get(protein_id)[1]
-    dis_labels = [s == '1' for s in label]
-    
-    slices = ndimage.find_objects(ndimage.label(dis_labels)[0])
-    
-    for s in slices:
-        len_seg = len(label[s[0]])
-        # Checking to see if disordered region is of desired length as set from variables declared above 
-        if len_seg >= dis_lower_limit and len_seg <= dis_upper_limit:
-            # Calculating the index for the context of the disordered region
-            len_context = (len_residue - len_seg) // 2
-            
-            len_remainder = (len_residue - len_seg) % 2 
-            
-            # only need index of disordered sequence
-            start_ind = s[0].start - len_context 
-            end_ind = s[0].stop + len_context
-            
-            output_labels = len_context*'0' + len_seg*'1' + '0'*(len_context + len_remainder)
-            output_aaseq = protein_dict.get(protein_id)[0][slice(start_ind, end_ind + len_remainder)]
+    seq, labels = record
+    labels = [sym == "1" for sym in labels]
 
-            
-            # Writing the description and the labels/amino acid sequences of proteins that fits the desired length
-            if len(output_labels) == len_residue and len(output_aaseq) == len_residue:
+    slices = ndimage.find_objects(ndimage.label(labels)[0])
+    for s, in slices:  # Unpack 1-tuple of slice indices
+        length = s.stop - s.start
+        if LOWER_LIMIT <= length <= UPPER_LIMIT:  # Check if disordered region is of desired length
+            # Calculate the length for the context of the disordered region
+            context_length = (TOTAL_LENGTH - length) // 2
+            remainder_length = (TOTAL_LENGTH - length) % 2
+            start = s.start - context_length
+            stop = s.stop + context_length
 
-                unique_protein.add(protein_id)
-                nonunique_protein.append(protein_id)
-                
-                labels_file.write(">" + protein_dict.get(protein_id)[2] + "|" + str(start_ind) + ":" + str(end_ind) + "\n"
-                                 + "\n".join([output_labels[i:i+80] for i in range(0, len(output_labels), 80)]) + "\n")
-                
-                unmasked_seq_file.write(">" + protein_dict.get(protein_id)[2] + "|" + str(start_ind) + ":" + str(end_ind) + "\n"
-                                       + "\n".join([output_aaseq[i:i+80] for i in range(0, len(output_aaseq), 80)]) + "\n")
+            # Make output seq and labels
+            output_seq = seq[start:stop]
+            output_labels = context_length * "0" + length * "1" + (context_length + remainder_length) * "0"
 
-            elif len(output_aaseq) != len_residue:
-                uniuqe_not_protein.add(protein_id)
+            # Final check that the seq and labels fit the desired length
+            if len(output_labels) == TOTAL_LENGTH and len(output_seq) == TOTAL_LENGTH:
+                output_records.append((output_seq, output_labels, accession, (start, stop)))
 
+# Create FASTA files with labels and unmasked amino acid sequences
+if not os.path.exists("out/"):
+    os.mkdir("out/")
 
-labels_file.close()
-unmasked_seq_file.close()
-print('len of dataset unique: ' + str(len(unique_protein)))
-print('len of dataset non-unique: ' + str(len(nonunique_protein)))
+with open("out/seqs.fasta", "w") as file:
+    for seq, _, accession, interval in output_records:
+        start, stop = interval
+        header = f">{accession}|{start}:{stop}"
+        seqstring = "\n".join([seq[i:i + 80] for i in range(0, len(seq), 80)])
+        file.write(f"{header}\n{seqstring}\n")
+with open("out/labels.fasta", "w") as file:
+    for _, labels, accession, interval in output_records:
+        start, stop = interval
+        header = f">{accession}|{start}:{stop}"
+        seqstring = "\n".join([labels[i:i + 80] for i in range(0, len(labels), 80)])
+        file.write(f"{header}\n{seqstring}\n")
+
+print('Number of input records:', len(input_records))
+print('Number of output records:', len(output_records))
+print('Number of unique accessions in output records:', len({record[2] for record in output_records}))
