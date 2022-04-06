@@ -1,134 +1,58 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
+"""Split extracted disordered regions in train, validation, and test sets"""
 
 import math
 import os
 import random
-import datetime;
 
 from Bio import SeqIO
 
-
-# In[2]:
-
+# Ratio for splitting into validation, test and train
+train_ratio = 0.80
+test_ratio = 0.10
+random.seed(7)
 
 # Load data
-fasta_seq = SeqIO.parse("../../inpainting_mobidb/extract_data/out/label.fasta", 'fasta')
-fasta_label = SeqIO.parse("../../inpainting_mobidb/extract_data/out/unmasked_seq_file.fasta", 'fasta')
+fasta_seqs = SeqIO.parse("../extract_data/out/seqs.fasta", 'fasta')
+fasta_labels = SeqIO.parse("../extract_data/out/labels.fasta", 'fasta')
 
+# Create dictionary with key-value pair, "accession" : ["amino_acid_sequence", "disorder_labels"]
+input_records = {}
 
-# In[3]:
+# Load amino acid sequences into dictionary
+for record in fasta_seqs:
+    accession = record.id
+    input_records[accession] = str(record.seq)
 
+# Edit dictionary to include amino labels and descriptions
+for record in fasta_labels:
+    accession = record.id
+    input_records[accession] = [input_records[accession], str(record.seq), record.description]
 
-# Ratio for splitting into validation, test and train 
-train_ratio = .80 
-validation_ratio = .10 
-test_ratio = .10 
+# Data shuffling
+accessions = list(input_records)
+random.shuffle(accessions)
 
+# Extract by index
+train_length = math.ceil(train_ratio*len(accessions))
+test_length = math.ceil(test_ratio*len(accessions))
 
-# In[4]:
+train = accessions[:train_length]
+test = accessions[train_length:train_length+test_length]
+validation = accessions[train_length+test_length:]  # Validation gets remainder if split is not even
 
+# Create out directory to put FASTA files in
+if not os.path.exists("out/"):
+    os.mkdir("out/")
 
-# Create dictionary with key-value pair, "protein_accession|start_ind:last_ind" : ["protein_labels", "amino_acid_seq", "description"] 
-protein_dict = {}
+data_sets = [('train', train), ('validation', validation), ('test', test)]
+for data_label, data_set in data_sets:
+    with open(f"out/{data_label}_seq.fasta", "w") as seq_file, open(f"out/{data_label}_label.fasta", "w") as labels_file:
+        for accession in data_set:
+            record = input_records[accession]
+            seq, labels, description = record
 
-# Load amino acid sequences into dictionary from allseq.fasta 
-for protein in fasta_seq:
-    key = protein.id.split("|")[0] + "|" + protein.description.split("|")[-1]
-    protein_dict[key] = [str(protein.seq)]
+            seqstring = "\n".join([seq[i:i + 80] for i in range(0, len(seq), 80)])
+            seq_file.write(f">{description}\n{seqstring}\n")
 
-# Edit dictionary to include amino acid sequence, labels, and descriptions from alldisorder.fasta 
-for protein in fasta_label:
-    key = protein.id.split("|")[0] + "|" + protein.description.split("|")[-1]
-    protein_dict[key] = protein_dict.get(key) + [str(protein.seq)] + [protein.description]
-    #accession = protein.id.split("|")[0]
-    #protein_dict[accession] = protein_dict.get(accession) + [str(protein.seq)] + [protein.description]
-
-
-# In[5]:
-
-
-# Data Shuffling
-
-# 2D list with a each list inside of the list for each protein [["protein_label", "amino_acid_sequence", "description"],..]
-protein_lst = list(protein_dict.values())
-
-# Use random seed for shuffling
-random.seed(7)
-random.shuffle(protein_lst)
-
-# Extract by index 
-train_length = math.ceil(0.8*len(protein_lst))
-test_length = math.ceil(0.1*len(protein_lst))
-
-train = protein_lst[:train_length]
-test = protein_lst[train_length:train_length+test_length]
-validation = protein_lst[train_length+test_length:]  # Validation gets remainder if split is not even
-
-
-# In[6]:
-
-
-# Create out directory to put fasta files in
-data_path = "../out/"
-if not os.path.exists(data_path):
-        os.mkdir(data_path)
-
-
-# In[7]:
-
-
-# Method for creating files 
-
-def write_fasta(lst, label_or_seq, file_name):
-    with open(data_path + file_name, "w+") as fasta_file:
-        for record in lst:
-            if label_or_seq == "label":
-                label_str = "\n".join(record[0][i:i+80] for i in range(0, len(record[0]), 80)) 
-                fasta_file.write(">" + record[2] + "\n" + label_str + "\n")
-            elif label_or_seq == "seq":
-                seq_str = "\n".join(record[1][i:i+80] for i in range(0, len(record[1]), 80))
-                fasta_file.write(">" + record[2] + "\n" + seq_str + "\n")
-                
-    ct = datetime.datetime.now()
-    print(file_name + " created ", ct)
-
-
-# In[8]:
-
-
-write_fasta(validation, "label", "validation_label.fasta")
-
-
-# In[9]:
-
-
-write_fasta(validation, "seq", "validation_seq.fasta")
-
-
-# In[10]:
-
-
-write_fasta(test, "label", "test_label.fasta")
-
-
-# In[11]:
-
-
-write_fasta(test, "seq", "test_seq.fasta")
-
-
-# In[12]:
-
-
-write_fasta(train, "label", "train_label.fasta")
-
-
-# In[13]:
-
-
-write_fasta(train, "seq", "train_seq.fasta")
-
+            seqstring = "\n".join([labels[i:i + 80] for i in range(0, len(labels), 80)])
+            labels_file.write(f">{description}\n{seqstring}\n")
