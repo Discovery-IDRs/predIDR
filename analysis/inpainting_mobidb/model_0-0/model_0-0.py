@@ -10,9 +10,8 @@ BATCH_NUM = 10
 sym_codes = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
              'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 sym2idx = {i: sym for i, sym in enumerate(sym_codes)}
-train_seq_path = '../extract_data/out/unmasked_seq_file.fasta'
-train_label_path = '../extract_data/out/label.fasta'
-
+train_seq_path = '../split_data/out/test_seq.fasta'
+train_label_path = '../split_data/out/test_label.fasta'
 
 
 # Utility functions
@@ -281,11 +280,11 @@ def train(context, target, weight, epochs):
         # Append record to records
         record = {'epoch': epoch, 'accuracy': symbol_acc, 'generator loss': generator_loss(fake_output, fake_target, real_target, weight).numpy(),
                   'discriminator loss': discriminator_loss(real_output, fake_output).numpy()}
-        print(record)
+        #print(record)
         # training loss
         records.append(record)
 
-        print(f'\tSYMB ACC {symbol_acc}')
+        #print(f'\tSYMB ACC {symbol_acc}')
 
     df = pd.DataFrame(records)
     return df
@@ -299,10 +298,10 @@ train_seq, train_label = load_data(train_seq_path, train_label_path)
 train_context, train_weight = get_context_weight(train_seq, train_label)
 
 df_data = train(train_context, train_seq, train_weight, 10)
-df_data.to_csv('out/metrics.tsv', index=False, sep='\t')
+df_data.to_csv('./out/metrics.tsv', index=False, sep='\t')
 
-generator.save('out/generator_model.h5')
-discriminator.save('out/discriminator_model.h5')
+generator.save('./out/generator_model.h5')
+discriminator.save('./out/discriminator_model.h5')
 
 #create another script to run the csv files and create plots for epoch vs. loss
 

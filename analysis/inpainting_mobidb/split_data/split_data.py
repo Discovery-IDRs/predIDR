@@ -15,9 +15,9 @@ from Bio import SeqIO
 # In[2]:
 
 
-# Load data 
-fasta_seq = SeqIO.parse("../inpainting_mobidb/out/label.fasta", 'fasta')
-fasta_label = SeqIO.parse("../inpainting_mobidb/out/unmasked_seq_file.fasta", 'fasta')
+# Load data
+fasta_seq = SeqIO.parse("../../inpainting_mobidb/extract_data/out/label.fasta", 'fasta')
+fasta_label = SeqIO.parse("../../inpainting_mobidb/extract_data/out/unmasked_seq_file.fasta", 'fasta')
 
 
 # In[3]:

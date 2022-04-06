@@ -14,8 +14,8 @@ from Bio import SeqIO
 
 
 # Set path of previously created fasta files of amino acid sequence and labels 
-fasta_seq = SeqIO.parse('../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
-fasta_disorder = SeqIO.parse('../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
+fasta_seq = SeqIO.parse('../../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
+fasta_disorder = SeqIO.parse('../../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
 
 
 # In[3]:
