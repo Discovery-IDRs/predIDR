@@ -1,6 +1,8 @@
 """Remove outliers from data."""
 
 import os
+import re
+
 import scipy.ndimage as ndimage
 
 
@@ -23,8 +25,8 @@ def load_fasta(path):
 
 
 # Load outlier accessions
-outliers = {'Q8WZ42', 'O97791', 'G4SLH0'}  # Titin sequences
-with open('../mobidb_stats/out/ns_codes.tsv') as file:  # Sequences with non-standard amino acids
+outliers = {'DP00072', 'DP01090'}  # Titin sequences
+with open('../disprot_stats/out/ns_codes.tsv') as file:  # Sequences with non-standard amino acids
     file.readline()  # Skip header
     for line in file:
         fields = line.split('\t')
@@ -35,19 +37,19 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Remove outliers from seqs
-fastas = load_fasta('../generate_fastas/out/mobidb_seqs.fasta')
-with open('out/mobidb_seqs.fasta', 'w') as file:
+fastas = load_fasta('../generate_fastas/out/disprot_seqs.fasta')
+with open('out/disprot_seqs.fasta', 'w') as file:
     for header, seq in fastas:
-        accession = header.split('|')[0][1:]  # Trim >
+        accession = re.search(r'disprot_id:(DP[0-9]+)', header).group(1)
         if accession not in outliers:
             seqstring = '\n'.join(seq[i:i+80] for i in range(0, len(seq), 80))
             file.write(header + seqstring + '\n')
 
 # Remove outliers from labels including flipping labels in short segments
-fastas = load_fasta('../generate_fastas/out/mobidb_labels.fasta')
-with open('out/mobidb_labels.fasta', 'w') as file:
+fastas = load_fasta('../generate_fastas/out/disprot_labels.fasta')
+with open('out/disprot_labels.fasta', 'w') as file:
     for header, seq in fastas:
-        accession = header.split('|')[0][1:]  # Trim >
+        accession = re.search(r'disprot_id:(DP[0-9]+)', header).group(1)
         if accession not in outliers:
             seq1 = [1 if sym == '1' else 0 for sym in seq]
             seq2 = [sym for sym in seq]
@@ -62,15 +64,11 @@ with open('out/mobidb_labels.fasta', 'w') as file:
 """
 NOTES
 Titin sequences were removed due to their extreme length compared to other sequences.
-Sequences with non-standard amino acids were removed (as reported in mobidb_stats.py).
-Short disordered segments (9 aa or smaller) were also removed by flipping their labels from 1s to 0s.
-    This was largely motivated by the exclusion such segments from DisProt as well as their tendency to be simple loops
-    connecting larger, ordered domains.
-    Proteins with no disordered labels following this change were not removed.
+Sequences with non-standard amino acids were removed (as reported in disprot_stats.py).
 
 DEPENDENCIES
 ../generate_fastas/generate_fastas.py
     ../generate_fastas/out/*
-../mobidb_stats/mobidb_stats.py
-    ../mobidb_stats/mobidb_stats/out/ns_codes.tsv
+../disprot_stats/disprot_stats.py
+    ../disprot_stats/disprot_stats/out/ns_codes.tsv
 """
