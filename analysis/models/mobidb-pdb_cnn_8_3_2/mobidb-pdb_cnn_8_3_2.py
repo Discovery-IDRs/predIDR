@@ -4,23 +4,9 @@
 # cuda 10.1
 # cudnn 7.6
 
-# Purpose:
-# This was an initial test run of the code for a cnn trained on the
-# mobidb-pdb dataset to see if everything worked properly.
-
-# Architecture:
-# disorder weight: x1
-# layers: x2 1D conv layers with 128 filter and 20 kernal
-# epoch: 50
-
-# Significance:
-# Its performance was used as a baseline which the performance of other model
-# architectures could be compared to before it was found that increasing
-# disorder weight seemed to prevent overfitting (performance of model
-# mobidb-pdb_cnn_3_6_1 ultimately was used as a baseline for later models).
-# Training curves appear to be abnormal and seem to indicate possible
-# overfitting occuring (hence why this model's performance was no longer use
-# as a baseline for later models).
+# increase disorder weight to 75
+# increase epoch to 100
+# dropout 0.8
 
 import os
 from math import floor
@@ -36,7 +22,7 @@ from legacy_metrics import *
 
 from pandas.core.common import flatten
 
-model_name = "mobidb-pdb_cnn_1"
+model_name = "mobidb-pdb_cnn_8_3_2"
 
 class BatchGenerator(keras.utils.Sequence):
     """Label, batch, and pad protein sequence data.
@@ -68,7 +54,7 @@ class BatchGenerator(keras.utils.Sequence):
             y[i, :len(syms)] = [int(label) if label in ["0", "1"] else 2 for label in labels]
 
         sample_weights = np.ones((self.batch_size, max_len))
-        sample_weights[y == 1] = 1.0
+        sample_weights[y == 1] = 75.0
         sample_weights[y == 2] = 0.0
 
         x = keras.utils.to_categorical(x, num_classes=len(self.ctable))
@@ -207,13 +193,14 @@ inputs = keras.layers.Input(shape=(None, 20), name='input1')
 x = layers.Masking(mask_value=0, name='mask1')(inputs)
 x = MaskedConv1D(128, 20, padding='same', activation='relu', name='conv1d1')(x)
 x = MaskedConv1D(128, 20, padding='same', activation='relu', name='conv1d2')(x)
+x = layers.Dropout(0.8, name='dropout1')(x)
 outputs = layers.Dense(3, activation='softmax', name='output1')(x)
 
 model = keras.Model(inputs=inputs, outputs=outputs, name=model_name)
 model.compile(loss='binary_crossentropy', optimizer='adam', weighted_metrics=['binary_accuracy'], sample_weight_mode="temporal")
 model.summary()
 
-num_epochs = 50
+num_epochs = 100
 
 # Train model
 # Epochs are written explicitly in a training loop since Keras

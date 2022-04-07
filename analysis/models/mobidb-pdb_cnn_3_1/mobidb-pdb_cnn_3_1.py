@@ -5,22 +5,21 @@
 # cudnn 7.6
 
 # Purpose:
-# This was an initial test run of the code for a cnn trained on the
-# mobidb-pdb dataset to see if everything worked properly.
+# Examine the effect increasing the disorder weight to 2 has on performance.
 
 # Architecture:
-# disorder weight: x1
+# disorder weight: x2
 # layers: x2 1D conv layers with 128 filter and 20 kernal
 # epoch: 50
 
 # Significance:
-# Its performance was used as a baseline which the performance of other model
-# architectures could be compared to before it was found that increasing
-# disorder weight seemed to prevent overfitting (performance of model
-# mobidb-pdb_cnn_3_6_1 ultimately was used as a baseline for later models).
-# Training curves appear to be abnormal and seem to indicate possible
-# overfitting occuring (hence why this model's performance was no longer use
-# as a baseline for later models).
+# The 3 series of models appear to demonstrate that, as disorder weight
+# increases, accuracy, MCC, specificity, precision, and f1 scores decrease
+# while sensitivity scores increase. This particular model follows that trend.
+# Also, the training curves look less and less abnormal as the disorder weight
+# increases seeming to indicate that less and less overfitting is occurring.
+# The training curves still appear to be abnormal in this particular model and
+# seem to indicate possible overfitting occcuring.
 
 import os
 from math import floor
@@ -36,7 +35,7 @@ from legacy_metrics import *
 
 from pandas.core.common import flatten
 
-model_name = "mobidb-pdb_cnn_1"
+model_name = "mobidb-pdb_cnn_3_1"
 
 class BatchGenerator(keras.utils.Sequence):
     """Label, batch, and pad protein sequence data.
@@ -68,7 +67,7 @@ class BatchGenerator(keras.utils.Sequence):
             y[i, :len(syms)] = [int(label) if label in ["0", "1"] else 2 for label in labels]
 
         sample_weights = np.ones((self.batch_size, max_len))
-        sample_weights[y == 1] = 1.0
+        sample_weights[y == 1] = 2.0
         sample_weights[y == 2] = 0.0
 
         x = keras.utils.to_categorical(x, num_classes=len(self.ctable))
