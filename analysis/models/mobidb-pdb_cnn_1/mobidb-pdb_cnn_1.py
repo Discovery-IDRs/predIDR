@@ -4,8 +4,23 @@
 # cuda 10.1
 # cudnn 7.6
 
-# initial test of cnn trained on mobidb-pdb dataset
-# disorder weight x15
+# Purpose:
+# This was an initial test run of the code for a cnn trained on the
+# mobidb-pdb dataset to see if everything worked properly.
+
+# Architecture:
+# disorder weight: x1
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+# epoch: 50
+
+# Significance:
+# Its performance was used as a baseline which the performance of other model
+# architectures could be compared to before it was found that increasing
+# disorder weight seemed to prevent overfitting (performance of model
+# mobidb-pdb_cnn_3_6_1 ultimately was used as a baseline for later models).
+# Training curves appear to be abnormal and seem to indicate possible
+# overfitting occuring (hence why this model's performance was no longer use
+# as a baseline for later models).
 
 import os
 from math import floor
@@ -53,7 +68,7 @@ class BatchGenerator(keras.utils.Sequence):
             y[i, :len(syms)] = [int(label) if label in ["0", "1"] else 2 for label in labels]
 
         sample_weights = np.ones((self.batch_size, max_len))
-        sample_weights[y == 1] = 15.0
+        sample_weights[y == 1] = 1.0
         sample_weights[y == 2] = 0.0
 
         x = keras.utils.to_categorical(x, num_classes=len(self.ctable))
