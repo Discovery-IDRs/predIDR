@@ -11,8 +11,8 @@ UPPER_LIMIT = 90
 TOTAL_LENGTH = 180
 
 # Set path of previously created fasta files of amino acid sequence and labels
-fasta_seqs = SeqIO.parse("../../mobidb_validation/generate_fastas/out/mobidb_seqs.fasta", "fasta")
-fasta_labels = SeqIO.parse("../../mobidb_validation/generate_fastas/out/mobidb_labels.fasta", "fasta")
+fasta_seqs = SeqIO.parse("../../mobidb_validation/format_seqs/out/mobidb_seqs.fasta", "fasta")
+fasta_labels = SeqIO.parse("../../mobidb_validation/format_seqs/out/mobidb_labels.fasta", "fasta")
 
 # Create dictionary with key-value pair, "accession" : ["amino_acid_sequence", "disorder_labels"]
 input_records = {}
