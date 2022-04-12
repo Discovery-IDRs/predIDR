@@ -56,23 +56,13 @@ def seq_to_OHE(seq):
 
 
 def OHE_to_seq(ohe):
-    pass
+    """Returns one hot encoding sequence to amino acid sequence"""
     x = np.argmax(ohe, axis= 1)
+    seq = []
     for indices in x:
-        seq = []
-        for index in indices:
-            sym = sym_codes[index]
-            sym.append(sym)
+        sym = sym_codes[indices]
+        seq.append(sym)
     return seq
-
-def decode(x, sym_codes):
-    pass
-    for indices in x:
-        syms = []
-        for index in indices:
-            sym = sym_codes[index]
-            sym.append(sym)
-    return syms
 
 # MODELS
 # Generator Model
@@ -180,7 +170,7 @@ def generator_loss(fake_output, fake_target, real_target, weight):
         This means if the generator is doing well, the discriminator should think its output is real, i.e. 1
         Hence the y_true for the discriminative loss is a tensor of 1s the length of the batch size
 
-    :param fake_output: discriminator evaluation of whether the fake target is real or not
+    :param fake_output: discriminator evaluation of whether target from generator is real or not
     :param fake_target: generator derived target from masked sequence
     :param real_target: real data derived target from masked sequence
     :param weight: binary classification of data (1: target 0: context)
@@ -202,8 +192,8 @@ def discriminator_loss(real_output, fake_output):
     Measures how well the discriminator can differentiate between the real output from the data and the
     fake output from the generator.
 
-    :param real_output: discriminator evaluation of the target from actual data
-    :param fake_output: discriminator evaluation of target from generator
+    :param real_output: discriminator evaluation of whether target from actual is real or not
+    :param fake_output: discriminator evaluation of whether target from generator is real or not
     :return: discriminator loss
     """
     # Make y_true for calculating loss
@@ -242,7 +232,7 @@ def train(context, target, weight, epochs):
 
     :param context: sequence around disordered sequence of interest
     :param target: disordered sequence of interest
-    :param weight: binary classification of data (1: target 0: context) 
+    :param weight: binary classification of data (1: target 0: context)
     :param epochs: number of training loops
     :return: dataframe of losses and accuracy in each epoch of training
     """
