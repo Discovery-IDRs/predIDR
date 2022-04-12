@@ -57,7 +57,7 @@ def seq_to_OHE(seq):
 
 def OHE_to_seq(ohe):
     """Returns one hot encoding sequence to amino acid sequence"""
-    x = np.argmax(ohe, axis= 1)
+    x = np.argmax(ohe, axis=1)
     seq = []
     for indices in x:
         sym = sym_codes[indices]
@@ -295,8 +295,8 @@ generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
 # LOAD DATA AND TRAIN
-train_seq_path = '../split_data/out/test_seq.fasta'
-train_label_path = '../split_data/out/test_label.fasta'
+train_seq_path = '../split_data/out/test_seqs.fasta'
+train_label_path = '../split_data/out/test_labels.fasta'
 
 train_seq, train_label = load_data(train_seq_path, train_label_path)
 train_context, train_weight = get_context_weight(train_seq, train_label)

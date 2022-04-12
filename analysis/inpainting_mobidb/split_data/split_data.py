@@ -46,7 +46,7 @@ if not os.path.exists("out/"):
 
 data_sets = [('train', train), ('validation', validation), ('test', test)]
 for data_label, data_set in data_sets:
-    with open(f"out/{data_label}_seq.fasta", "w") as seq_file, open(f"out/{data_label}_label.fasta", "w") as labels_file:
+    with open(f"out/{data_label}_seqs.fasta", "w") as seq_file, open(f"out/{data_label}_labels.fasta", "w") as labels_file:
         for accession in data_set:
             record = input_records[accession]
             seq, labels, description = record
