@@ -1,4 +1,4 @@
-"""Split extracted disordered regions in train, validation, and test sets"""
+"""Split extracted disordered regions into train, validation, and test sets"""
 
 import math
 import os

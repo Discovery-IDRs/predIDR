@@ -1,17 +1,10 @@
-import os
+"""Building and running model"""
 
+import os
 import Bio.SeqIO as SeqIO
 import numpy as np
 import tensorflow as tf
 import pandas as pd
-
-# Parameters
-BATCH_NUM = 10
-sym_codes = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
-             'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
-sym2idx = {i: sym for i, sym in enumerate(sym_codes)}
-train_seq_path = '../split_data/out/test_seq.fasta'
-train_label_path = '../split_data/out/test_label.fasta'
 
 
 # Utility functions
@@ -43,7 +36,9 @@ def get_context_weight(ohe, label):
     :param label: array of labels corresponding to seq_ohc
     :return: target, context and weight according to seq_ohc and label
     """
+    # weight is binary classification of data (1:target 0: context)
     weight = np.expand_dims(label, axis=2)
+    # context is the opposite of the weight (0:target 1: context)
     context = (np.invert(weight) + 2) * ohe
 
     return context, weight
@@ -62,15 +57,22 @@ def seq_to_OHE(seq):
 
 def OHE_to_seq(ohe):
     pass
-    #x = np.argmax(ohe, axis= 1)
-    #for indices in x:
-       # seq = []
-        #for index in indices:
-            #sym = sym_codes[index]
-            #sym.append(sym)
-    #return seq
+    x = np.argmax(ohe, axis= 1)
+    for indices in x:
+        seq = []
+        for index in indices:
+            sym = sym_codes[index]
+            sym.append(sym)
+    return seq
 
-
+def decode(x, sym_codes):
+    pass
+    for indices in x:
+        syms = []
+        for index in indices:
+            sym = sym_codes[index]
+            sym.append(sym)
+    return syms
 
 # MODELS
 # Generator Model
@@ -82,6 +84,7 @@ def make_generative_model():
     :return: model instance of generative model
     """
     # TODO: EXPERIMENT WITH THE RATIO OF FILTERS FROM LAYER TO LAYER AND WINDOW SIZES
+
     # Convolution
     model = tf.keras.Sequential()
     model.add(tf.keras.Input(shape=(180, 20)))
@@ -136,15 +139,9 @@ def make_generative_model():
 
     return model
 
-
-generator = make_generative_model()
-generator.summary()
-
-
 # Discriminator Model
 def make_discriminator_model():
     """Return discriminative model.
-
     DCGAN architecture from "Protein Loop Modeling Using Deep Generative Adversarial Network."
 
     :return: model instance of discriminative model
@@ -173,26 +170,21 @@ def make_discriminator_model():
 
     return model
 
-
-discriminator = make_discriminator_model()
-discriminator.summary()
-
-
-# LOSS FUNCTIONS
-cce = tf.keras.losses.CategoricalCrossentropy()
-bce = tf.keras.losses.BinaryCrossentropy()
-
-
 # Generator Loss
 def generator_loss(fake_output, fake_target, real_target, weight):
-    """Return generator loss.
-
+    """
     The loss for the generator is made of reconstruction and discriminative terms
       The reconstruction loss measures how well the generator recreates the target from the context
       The discriminative loss measures are well the generator is fooling the discriminator
         Remember we want the generator to recreate the target realistically (rather than taking shortcuts that minimize the reconstruction loss)
         This means if the generator is doing well, the discriminator should think its output is real, i.e. 1
         Hence the y_true for the discriminative loss is a tensor of 1s the length of the batch size
+
+    :param fake_output: discriminator evaluation of whether the fake target is real or not
+    :param fake_target: generator derived target from masked sequence
+    :param real_target: real data derived target from masked sequence
+    :param weight: binary classification of data (1: target 0: context)
+    :return: generator loss
     """
     # Make y_true for calculating loss
     true_target = tf.convert_to_tensor(real_target)
@@ -206,7 +198,14 @@ def generator_loss(fake_output, fake_target, real_target, weight):
 
 # Discriminator Loss
 def discriminator_loss(real_output, fake_output):
-    """Return discriminator loss."""
+    """
+    Measures how well the discriminator can differentiate between the real output from the data and the
+    fake output from the generator.
+
+    :param real_output: discriminator evaluation of the target from actual data
+    :param fake_output: discriminator evaluation of target from generator
+    :return: discriminator loss
+    """
     # Make y_true for calculating loss
     true_real = tf.stack([tf.zeros(real_output.shape[0]), tf.ones(real_output.shape[0])], axis=1)
     true_fake = tf.stack([tf.ones(fake_output.shape[0]), tf.zeros(fake_output.shape[0])], axis=1)
@@ -216,14 +215,10 @@ def discriminator_loss(real_output, fake_output):
     fake_loss = bce(true_fake, fake_output)
     return real_loss + fake_loss
 
-
-# Optimizer
-generator_optimizer = tf.keras.optimizers.Adam(1e-4)
-discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
-
-
-# Training Loop
+# TRAINING
 def train_step(context, target, weight):
+    """ Runs one step of training"""
+
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         real_target = target  # For clearer naming :)
         fake_target = generator(context, training=True)
@@ -239,17 +234,18 @@ def train_step(context, target, weight):
         generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
         discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
-def decode(x, sym_codes):
-    for indices in x:
-        syms = []
-        for index in indices:
-            sym = sym_codes[index]
-            sym.append(sym)
-    return syms
-
 
 
 def train(context, target, weight, epochs):
+    """
+    Runs training loop
+
+    :param context: sequence around disordered sequence of interest
+    :param target: disordered sequence of interest
+    :param weight: binary classification of data (1: target 0: context) 
+    :param epochs: number of training loops
+    :return: dataframe of losses and accuracy in each epoch of training
+    """
     print("training started")
     # Batch data
     context_batch = np.array_split(context, BATCH_NUM)
@@ -276,41 +272,50 @@ def train(context, target, weight, epochs):
         len_target = np.sum(weight)
         symbol_acc = (np.sum(equality_target) -sum_context)/len_target
 
-
         # Append record to records
         record = {'epoch': epoch, 'accuracy': symbol_acc, 'generator loss': generator_loss(fake_output, fake_target, real_target, weight).numpy(),
                   'discriminator loss': discriminator_loss(real_output, fake_output).numpy()}
-        #print(record)
+
         # training loss
         records.append(record)
-
-        #print(f'\tSYMB ACC {symbol_acc}')
 
     df = pd.DataFrame(records)
     return df
 
 
-# Load data and train
-if not os.path.exists('../out/'):
-    os.mkdir('../out/')
+# PARAMETERS
+BATCH_NUM = 10
+sym_codes = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
+             'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+sym2idx = {i: sym for i, sym in enumerate(sym_codes)}
+
+# MODEL
+generator = make_generative_model()
+generator.summary()
+
+discriminator = make_discriminator_model()
+discriminator.summary()
+
+# LOSS FUNCTIONS
+cce = tf.keras.losses.CategoricalCrossentropy()
+bce = tf.keras.losses.BinaryCrossentropy()
+
+# OPTIMIZER
+generator_optimizer = tf.keras.optimizers.Adam(1e-4)
+discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+
+# LOAD DATA AND TRAIN
+train_seq_path = '../split_data/out/test_seq.fasta'
+train_label_path = '../split_data/out/test_label.fasta'
 
 train_seq, train_label = load_data(train_seq_path, train_label_path)
 train_context, train_weight = get_context_weight(train_seq, train_label)
-
 df_data = train(train_context, train_seq, train_weight, 10)
-df_data.to_csv('./out/metrics.tsv', index=False, sep='\t')
 
+# SAVE DATA
+if not os.path.exists('../out/'):
+    os.mkdir('../out/')
+
+df_data.to_csv('./out/metrics.tsv', index=False, sep='\t')
 generator.save('./out/generator_model.h5')
 discriminator.save('./out/discriminator_model.h5')
-
-#create another script to run the csv files and create plots for epoch vs. loss
-
-#for ind in range(len(real_target)):
-    #real_seq = OHE_to_seq(real_target[ind])
-    #fake_seq = OHE_to_seq(fake_target[ind])
-    #correct_aa = 0
-    #for ind in range(len(real_seq)):
-        #if real_seq[ind] == fake_seq[ind]:
-            #correct_aa += 1
-
-    #print(correct_aa/range(len(real_seq)))

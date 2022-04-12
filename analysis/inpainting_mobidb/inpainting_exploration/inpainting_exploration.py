@@ -5,11 +5,6 @@ import pandas as pd
 import scipy.ndimage as ndimage
 from Bio import SeqIO
 
-# Load data
-fasta_seq = SeqIO.parse('../../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
-fasta_disorder = SeqIO.parse('../../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
-
-
 def get_segments(aa_seq, label_seq, segment_type, accession, description):
     """
     Outputs list of dictionaries for each segment with parameters
@@ -58,6 +53,11 @@ def count_amino_acids(aa_seq):
     for aa in aa_seq:
         d[aa] += 1
     return d
+
+
+# Load data
+fasta_seq = SeqIO.parse('../../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
+fasta_disorder = SeqIO.parse('../../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
 
 
 # Create dictionary with key-value pair, "accession" : "amino acid sequence"
