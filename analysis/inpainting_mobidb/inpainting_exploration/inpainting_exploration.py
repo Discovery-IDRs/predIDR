@@ -1,147 +1,152 @@
-"""Data exploration and data formatting"""
+"""Exploration of MobiDB sequences and labels to establish length parameters for target and context."""
+
+import os
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.ndimage as ndimage
 from Bio import SeqIO
 
-def get_segments(aa_seq, label_seq, segment_type, accession, description):
-    """
-    Outputs list of dictionaries for each segment with parameters
-           [ { 'accession': accession id, 'description': description, 'segment_type': segment_type,
-           'len': length, 'slice': slice, 'A': number of A in aa_seq, 'R': number of R in aa_seq ... }, ...]
 
-    :param aa_seq: string amino acid sequence
-    :param label_seq: boolean list of whether disordered or ordered (0 = order, 1 = disorder)
+def get_segments(seq, labels, segment_type, accession, description):
+    """
+    Return list of dictionaries for each segment with parameters
+           [ { 'accession': accession id, 'start': slice.start, 'stop': slice.stop', 'segment_type': segment_type,
+               'segment_length': len(segment), 'seq_length': len(seq), 'description': description,
+               'A': number of A in eq, 'R': number of R in seq ... }, ...]
+
+    :param seq: string amino acid sequence
+    :param labels: boolean list of whether disordered or ordered (0 = order, 1 = disorder)
     :param segment_type: 'D': disordered sequence 'O': ordered sequence 'P': entire protein
     :param accession: string accession id
     :param description: string description
     :return: list of dictionaries containing parameters for each segment_type sequence in entire protein
     """
-    # Outputs the range of ordered/disordered sequences as a slice
-    slices = ndimage.find_objects(ndimage.label(label_seq)[0])
+    slices = ndimage.find_objects(ndimage.label(labels)[0])  # Finds contiguous intervals of True labels as slices
 
-    segments = []
+    rows = []
+    for s, in slices:  # Unpack 1-element slice tuple
+        segment = seq[s]
+        row = {'accession': accession, 'start': s.start, 'stop': s.stop, 'segment_type': segment_type,
+               'segment_length': len(segment), 'seq_length': len(seq), 'description': description}
 
-    for s in slices:
+        # Merge dictionary of amino acid counts to record dictionary
+        counts = count_amino_acids(segment)
+        row.update(counts)
 
-        segment = aa_seq[s[0]]  # Unpack 1-element slice tuple
-        record = {'accession': accession, 'description': description,
-             'segment_type': segment_type, 'len': len(segment), 
-             'slice': s}
+        rows.append(row)
 
-        # Merging dictionary of amino acid counts to record dictionary
-        aa_counts = count_amino_acids(segment)
-        record.update(aa_counts)
-
-        segments.append(record)
-
-    return segments
+    return rows
 
 
-def count_amino_acids(aa_seq):
+def count_amino_acids(seq):
     """
-    Creates dictionary of counts of amino acid sequence in given aa_seq
+    Return dictionary of counts of symbols in amino acid sequence in given seq
 
-    :param aa_seq: string of amino acid sequence
+    :param seq: string of amino acid symbols
     :return: dictionary of the count of amino acids
     """
-    aa_codes = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H',
-                'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 
-                'Y', 'V', 'O', 'U', 'B', 'Z', 'X', 'J']
-    d = {aa: 0 for aa in aa_codes}
-    for aa in aa_seq:
-        d[aa] += 1
-    return d
+    counts = {sym: 0 for sym in alphabet}
+    for sym in seq:
+        counts[sym] += 1
+    return counts
 
+
+alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M',
+            'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'O', 'U', 'B', 'Z', 'X', 'J']
 
 # Load data
-fasta_seq = SeqIO.parse('../../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
-fasta_disorder = SeqIO.parse('../../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
-
+fasta_seqs = SeqIO.parse('../../mobidb_validation/format_seqs/out/mobidb_seqs.fasta', 'fasta')
+fasta_labels = SeqIO.parse('../../mobidb_validation/format_seqs/out/mobidb_labels.fasta', 'fasta')
 
 # Create dictionary with key-value pair, "accession" : "amino acid sequence"
-protein_seq_dict = {}
-for protein in fasta_seq:
-    protein_seq_dict[protein.id.split("|")[0]] = str(protein.seq)
+seq_records = {}
+for record in fasta_seqs:
+    accession = record.id.split("|")[0]
+    seq_records[accession] = str(record.seq)
 
 rows = []
-for protein in fasta_disorder:
+for record in fasta_labels:
+    # Get record information
+    accession = record.id.split("|")[0]
+    description = record.description.split("|")[-1]
+    seq = seq_records[accession]
+    labels = str(record.seq)
+
     # Lists of booleans if label is ordered or disordered
-    dis_labels = [s == '1' for s in protein.seq]
-    ord_labels = [s == '0' for s in protein.seq]
-
-    # Obtaining amino acid sequence from protein_seq_dict
-    accession = protein.id.split("|")[0]
-    aa_seq = protein_seq_dict[accession]
-
-    # Obtaining description for get_segments parameter
-    description = protein.description.split("|")[-1]
+    labels_disorder = [sym == '1' for sym in labels]
+    labels_order = [sym == '0' for sym in labels]
+    labels_protein = [True for _ in range(len(labels))]
 
     # Disordered regions have the code 'D' and ordered regions have the code 'O'
     # The entire protein is added with the code 'P'
-    ds_dis = get_segments(aa_seq, dis_labels, 'D', accession, description)
-    ds_ord = get_segments(aa_seq, ord_labels, 'O', accession, description)
-    ds_all = get_segments(aa_seq, [True for _ in range(len(aa_seq))], 'P', accession, description)
+    rows_disorder = get_segments(seq, labels_disorder, 'D', accession, description)
+    rows_order = get_segments(seq, labels_order, 'O', accession, description)
+    rows_protein = get_segments(seq, labels_protein, 'P', accession, description)
 
-    # Add ds to rows
-    rows.extend(ds_dis)
-    rows.extend(ds_ord)
-    rows.extend(ds_all)
+    # Add to rows
+    rows.extend(rows_disorder)
+    rows.extend(rows_order)
+    rows.extend(rows_protein)
+
+
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Create dataframe with information of disordered segment, ordered segments, and full protein
 df1 = pd.DataFrame(rows)
 
-
 # Length Distribution of Disordered Regions in Proteins
 disorder = df1[df1['segment_type'] == 'D']
-plt.hist(disorder['len'], bins=50)
+plt.hist(disorder['segment_length'], bins=50)
 plt.yscale('log')
-plt.ylabel('Number of entries')
-plt.xlabel('Number of Amino Acids')
-plt.title('Length of Disordered Regions')
-plt.savefig('out/len_disorder.png')
+plt.ylabel('Number of regions')
+plt.xlabel('Number of residues')
+plt.title('Length distribution of disordered regions')
+plt.savefig('out/length_disorder.png')
+plt.close()
 
 # Length of the disordered regions drops off significantly after about a length of 90, making the upper limit of the
 # length of our data amino acid sequence be 180, because we want >50% unmasked (amino acid sequences of the ordered
 # regions).
-disless100 = disorder[disorder['len'] <= 100]
-plt.hist(disless100['len'])
-plt.savefig('out/len_upper_limit_disorder.png')
+filtered1 = disorder[disorder['segment_length'] <= 100]
+plt.hist(filtered1['segment_length'])
+plt.ylabel('Number of regions')
+plt.xlabel('Number of residues')
+plt.title('Length distribution of disordered regions')
+plt.savefig('out/length_upper_limit_disorder.png')
+plt.close()
 
 # The cut off for a disordered region is more than 30 amino acid residues. And we want the max disordered region
 # length to be 90 amino acids, as stated above.
-dismore30_less90 = disorder.loc[(disorder['len'] >= 30) & (disorder['len'] <= 90)]
-plt.hist(dismore30_less90['len'])
-plt.savefig('out/len_lower_upper_limit_disorder.png')
+lower_limit = 30
+upper_limit = 90
+total_length = 180
+
+filtered2 = disorder[(disorder['segment_length'] >= lower_limit) & (disorder['segment_length'] <= upper_limit)]
+plt.hist(filtered2['segment_length'])
+plt.ylabel('Number of regions')
+plt.xlabel('Number of residues')
+plt.title('Length distribution of disordered regions')
+plt.savefig('out/length_lower_upper_limit_disorder.png')
+plt.close()
 
 # Number of unique proteins in dataset
 # This gives us 5,619 proteins for our dataset
-dismore30_less90['accession'].nunique()
+filtered2['accession'].nunique()
 
-# Boolean List of whether there is enough context for amino acid sequence 
-enough_context = []
-# variable of residue length desired 
-residue_len = 180
+valid_segments = []  # List of accessions and slices where there is enough context
+for row in filtered2.itertuples():
+    length = row.stop - row.start
 
-# List of all possible protein accession and slice objects
-acc_lst = list(dismore30_less90['accession'])
-slice_lst = list(dismore30_less90['slice'])
+    context_length = (total_length - length) // 2
+    remainder_length = (total_length - length) % 2
+    start = row.start - context_length
+    stop = row.stop + context_length + remainder_length
 
-for i in range(0, len(acc_lst)):
-    acc = acc_lst[i]
+    # Check if there is enough context on both sides of the sequence
+    if (start >= 0) and (stop <= row.seq_length):
+        valid_segments.append((row.accession, start, stop))
 
-    _slice = slice_lst[i][0]
-    full_seq = protein_seq_dict[acc]
-    dis_len = len(full_seq[_slice])
-    
-    # max content needed, (this means that excluding some proteins that have enough context) --> underestimate 
-    context_len = (residue_len - dis_len)//2 + 1 
-    
-    # checking if there is enough context on both sides of the protein 
-    cond = ((_slice.start - context_len >= 0) and (_slice.stop + context_len <= len(full_seq) - 1))
-    
-    enough_context.append(cond)
-
-
-print('minimum number of entries in dataset: ' + str(sum(enough_context)))
+print(f'Number of segments in data set: {len(valid_segments)}')
+print(f'Number of unique accessions in data set: {len({accession for accession, _, _ in valid_segments})}')
