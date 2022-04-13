@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.ndimage as ndimage
+import os
 from Bio import SeqIO
 
 def get_segments(aa_seq, label_seq, segment_type, accession, description):
@@ -56,8 +57,8 @@ def count_amino_acids(aa_seq):
 
 
 # Load data
-fasta_seq = SeqIO.parse('../../mobidb_validation/generate_fastas/out/allseq.fasta', 'fasta')
-fasta_disorder = SeqIO.parse('../../mobidb_validation/generate_fastas/out/alldisorder.fasta', 'fasta')
+fasta_seq = SeqIO.parse("../../mobidb_validation/format_seqs/out/mobidb_seqs.fasta", "fasta")
+fasta_disorder = SeqIO.parse("../../mobidb_validation/format_seqs/out/mobidb_labels.fasta", "fasta")
 
 
 # Create dictionary with key-value pair, "accession" : "amino acid sequence"
@@ -92,6 +93,8 @@ for protein in fasta_disorder:
 # Create dataframe with information of disordered segment, ordered segments, and full protein
 df1 = pd.DataFrame(rows)
 
+if not os.path.exists("out/"):
+    os.mkdir("out/")
 
 # Length Distribution of Disordered Regions in Proteins
 disorder = df1[df1['segment_type'] == 'D']
