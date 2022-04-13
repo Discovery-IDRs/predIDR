@@ -1,4 +1,4 @@
-"""Building and running model"""
+"""Build and run DCGAN to inpaint target disordered regions using only context."""
 
 import os
 import Bio.SeqIO as SeqIO
@@ -12,7 +12,8 @@ def load_data(seq_path, label_path):
     """Return sequences and labels from FASTA files as arrays.
 
     :param seq_path: path for FASTA file of amino acid sequences
-    :param label_path: path for FASTA file of labels of amino acid sequences where disordered residues are labeled are labeled as 1 and ordered residues are labeled as 0
+    :param label_path: path for FASTA file of labels of amino acid sequences where disordered residues are labeled as 1
+        and ordered residues are labeled as 0
     :return: array of one hot encoded sequences and array of labels
     """
     ohes = []
@@ -34,47 +35,48 @@ def get_context_weight(ohe, label):
 
     :param ohe: one hot ended 2D arrays of sequences
     :param label: array of labels corresponding to seq_ohc
-    :return: target, context and weight according to seq_ohc and label
+    :return: context and weight according to ohc and label
     """
-    # weight is binary classification of data (1:target 0: context)
-    weight = np.expand_dims(label, axis=2)
-    # context is the opposite of the weight (0:target 1: context)
-    context = (np.invert(weight) + 2) * ohe
+    weight = np.expand_dims(label, axis=2)  # weight is binary classification of data (1:target 0: context)
+    context = (np.invert(weight) + 2) * ohe  # context is the opposite of the weight (0:target 1: context)
 
     return context, weight
 
 
 def seq_to_OHE(seq):
-    """Return sequence as one-hot-encoded vector
+    """Return amino acid sequence as one-hot-encoded vector.
 
     :param seq: amino acid sequence as string
     :return: one-hot-encoded string as 2D array
     """
-    ohe = np.array([sym_codes.index(sym) for sym in seq])
-    ohe = tf.keras.utils.to_categorical(ohe, num_classes=len(sym_codes), dtype='int32')
+    ohe = np.array([sym2idx[sym] for sym in seq])
+    ohe = tf.keras.utils.to_categorical(ohe, num_classes=len(alphabet), dtype='int32')
     return ohe
 
 
 def OHE_to_seq(ohe):
-    """Returns one hot encoding sequence to amino acid sequence"""
+    """Return one-hot-encoded vector as amino acid sequence.
+
+    :param ohe: one-hot-encoded string as 2D array
+    :return: amino acid sequence as list
+    """
     x = np.argmax(ohe, axis=1)
     seq = []
-    for indices in x:
-        sym = sym_codes[indices]
+    for idx in x:
+        sym = alphabet[idx]
         seq.append(sym)
     return seq
 
+
 # MODELS
-# Generator Model
 def make_generative_model():
-    """Return generative generative model.
+    """Return generative model.
 
     DCGAN architecture from "Protein Loop Modeling Using Deep Generative Adversarial Network."
+    10.1109/ICTAI.2017.00166
 
     :return: model instance of generative model
     """
-    # TODO: EXPERIMENT WITH THE RATIO OF FILTERS FROM LAYER TO LAYER AND WINDOW SIZES
-
     # Convolution
     model = tf.keras.Sequential()
     model.add(tf.keras.Input(shape=(180, 20)))
@@ -129,10 +131,12 @@ def make_generative_model():
 
     return model
 
-# Discriminator Model
+
 def make_discriminator_model():
     """Return discriminative model.
+
     DCGAN architecture from "Protein Loop Modeling Using Deep Generative Adversarial Network."
+    10.1109/ICTAI.2017.00166
 
     :return: model instance of discriminative model
     """
@@ -160,9 +164,11 @@ def make_discriminator_model():
 
     return model
 
-# Generator Loss
+
+# LOSSES
 def generator_loss(fake_output, fake_target, real_target, weight):
-    """
+    """Return generator loss.
+
     The loss for the generator is made of reconstruction and discriminative terms
       The reconstruction loss measures how well the generator recreates the target from the context
       The discriminative loss measures are well the generator is fooling the discriminator
@@ -186,13 +192,13 @@ def generator_loss(fake_output, fake_target, real_target, weight):
     return r_loss + d_loss
 
 
-# Discriminator Loss
 def discriminator_loss(real_output, fake_output):
-    """
-    Measures how well the discriminator can differentiate between the real output from the data and the
-    fake output from the generator.
+    """Return discriminator loss.
 
-    :param real_output: discriminator evaluation of whether target from actual is real or not
+    The loss how well the discriminator can differentiate between the real output from the data and the fake output from
+    the generator.
+
+    :param real_output: discriminator evaluation of whether target from real data is real or not
     :param fake_output: discriminator evaluation of whether target from generator is real or not
     :return: discriminator loss
     """
@@ -205,10 +211,10 @@ def discriminator_loss(real_output, fake_output):
     fake_loss = bce(true_fake, fake_output)
     return real_loss + fake_loss
 
+
 # TRAINING
 def train_step(context, target, weight):
-    """ Runs one step of training"""
-
+    """Run one step of training."""
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         real_target = target  # For clearer naming :)
         fake_target = generator(context, training=True)
@@ -225,10 +231,8 @@ def train_step(context, target, weight):
         discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
-
 def train(context, target, weight, epochs):
-    """
-    Runs training loop
+    """Run training loop.
 
     :param context: sequence around disordered sequence of interest
     :param target: disordered sequence of interest
@@ -236,7 +240,7 @@ def train(context, target, weight, epochs):
     :param epochs: number of training loops
     :return: dataframe of losses and accuracy in each epoch of training
     """
-    print("training started")
+    print("Training started!")
     # Batch data
     context_batch = np.array_split(context, BATCH_NUM)
     target_batch = np.array_split(target, BATCH_NUM)
@@ -259,14 +263,13 @@ def train(context, target, weight, epochs):
         # Calculate metrics
         equality_target = np.argmax(real_target*weight, axis=2) == np.argmax(fake_target*weight, axis=2)
         sum_context = np.sum(np.invert(weight) + 2)
-        len_target = np.sum(weight)
-        symbol_acc = (np.sum(equality_target) -sum_context)/len_target
+        target_length = np.sum(weight)
+        accuracy = (np.sum(equality_target) - sum_context) / target_length
 
         # Append record to records
-        record = {'epoch': epoch, 'accuracy': symbol_acc, 'generator loss': generator_loss(fake_output, fake_target, real_target, weight).numpy(),
+        record = {'epoch': epoch, 'accuracy': accuracy,
+                  'generator loss': generator_loss(fake_output, fake_target, real_target, weight).numpy(),
                   'discriminator loss': discriminator_loss(real_output, fake_output).numpy()}
-
-        # training loss
         records.append(record)
 
     df = pd.DataFrame(records)
@@ -275,9 +278,10 @@ def train(context, target, weight, epochs):
 
 # PARAMETERS
 BATCH_NUM = 10
-sym_codes = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
-             'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
-sym2idx = {i: sym for i, sym in enumerate(sym_codes)}
+alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
+            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+sym2idx = {idx: sym for idx, sym in enumerate(alphabet)}
+idx2sym = {sym: idx for idx, sym in enumerate(alphabet)}
 
 # MODEL
 generator = make_generative_model()
@@ -306,6 +310,6 @@ df_data = train(train_context, train_seq, train_weight, 10)
 if not os.path.exists("out/"):
     os.mkdir("out/")
 
-df_data.to_csv('./out/metrics.tsv', index=False, sep='\t')
-generator.save('./out/generator_model.h5')
-discriminator.save('./out/discriminator_model.h5')
+df_data.to_csv('out/metrics.tsv', index=False, sep='\t')
+generator.save('out/generator_model.h5')
+discriminator.save('out/discriminator_model.h5')
