@@ -303,8 +303,8 @@ train_context, train_weight = get_context_weight(train_seq, train_label)
 df_data = train(train_context, train_seq, train_weight, 10)
 
 # SAVE DATA
-if not os.path.exists('../out/'):
-    os.mkdir('../out/')
+if not os.path.exists("out/"):
+    os.mkdir("out/")
 
 df_data.to_csv('./out/metrics.tsv', index=False, sep='\t')
 generator.save('./out/generator_model.h5')
