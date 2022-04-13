@@ -42,14 +42,13 @@ for accession, record in input_records.items():
             context_length = (TOTAL_LENGTH - length) // 2
             remainder_length = (TOTAL_LENGTH - length) % 2
             start = s.start - context_length
-            stop = s.stop + context_length
+            stop = s.stop + context_length + remainder_length
 
-            # Make output seq and labels
-            output_seq = seq[start:stop]
-            output_labels = context_length * "0" + length * "1" + (context_length + remainder_length) * "0"
-
-            # Final check that the seq and labels fit the desired length
-            if len(output_labels) == TOTAL_LENGTH and len(output_seq) == TOTAL_LENGTH:
+            # Check if there is enough context on both sides of the sequence
+            if (start >= 0) and (stop <= len(seq)):
+                # Make output seq and labels
+                output_seq = seq[start:stop]
+                output_labels = context_length * "0" + length * "1" + (context_length + remainder_length) * "0"
                 output_records.append((output_seq, output_labels, accession, (start, stop)))
 
 # Create FASTA files with labels and unmasked amino acid sequences
