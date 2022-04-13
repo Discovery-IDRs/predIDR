@@ -1,10 +1,11 @@
 """Build and run DCGAN to inpaint target disordered regions using only context."""
 
 import os
+
 import Bio.SeqIO as SeqIO
 import numpy as np
-import tensorflow as tf
 import pandas as pd
+import tensorflow as tf
 
 
 # Utility functions
