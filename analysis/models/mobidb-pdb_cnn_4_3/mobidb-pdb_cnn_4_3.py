@@ -4,7 +4,19 @@
 # cuda 10.1
 # cudnn 7.6
 
-# add 3 128 conv1d
+# Purpose:
+# Examine the effect increasing the the number of 1D conv layers to 5 has on
+# performance.
+
+# Architecture:
+# disorder weight: x1
+# layers: x5 1D conv layers with 128 filter and 200 kernal
+# epoch: 50
+
+# Significance:
+# Training curves appear to be abnormal and seem to indicate possible
+# overfitting occuring. This model was ultimately disregarded when it was found
+# that increasing disorder weight seemed to prevent overfitting.
 
 import os
 from math import floor

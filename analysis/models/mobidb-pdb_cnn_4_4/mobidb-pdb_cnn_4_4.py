@@ -4,7 +4,18 @@
 # cuda 10.1
 # cudnn 7.6
 
-# add 4 128 conv1d
+# Purpose:
+# Examine the effect increasing the the number of 1D conv layers to 6 has on
+# performance.
+
+# Architecture:
+# disorder weight: x1
+# layers: x6 1D conv layers with 128 filter and 200 kernal
+# epoch: 50
+
+# Significance:
+# Model only predicts residues as ordered. Was immediately disregarded from
+# further consideration.
 
 import os
 from math import floor
