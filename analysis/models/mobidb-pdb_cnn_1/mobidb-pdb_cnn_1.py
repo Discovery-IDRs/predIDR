@@ -19,7 +19,7 @@
 # disorder weight seemed to prevent overfitting (performance of model
 # mobidb-pdb_cnn_3_6_1 ultimately was used as a baseline for later models).
 # Training curves appear to be abnormal and seem to indicate possible
-# overfitting occuring (hence why this model's performance was no longer use
+# overfitting occuring (hence why this model's performance was no longer used
 # as a baseline for later models).
 
 import os
