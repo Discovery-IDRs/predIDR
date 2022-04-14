@@ -4,13 +4,21 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
-# use deepsf architecture
-# add 10 conv1d
-# use 10 filter
-# use 6 kernal
-# add 500 dense
+# Purpose:
+# Test out architecture presented in doi: 10.1093/bioinformatics/btx780
+
+# Architecture:
+# disorder weight: x75
+# layers: x10 1D conv layers with 10 filters and 6 kernal
+#         x1 dense layer with 500 nodes
+# epoch: 100
+
+# Significance:
+# Demonstrated worse accuracy, MCC, specificity, precision, and F1 performance
+# compared to baseline model mobidb-pdb_cnn_6_2. Demonstrated better sensitivity
+# performance compared to baseline model mobidb-pdb_cnn_6_2. Worse performance
+# than baseline model resulted in features of this model not being considered
+# for incorporation into final model.
 
 import os
 from math import floor

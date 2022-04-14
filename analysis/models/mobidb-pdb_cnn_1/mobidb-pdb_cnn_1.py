@@ -17,7 +17,7 @@
 # Its performance was used as a baseline which the performance of other model
 # architectures could be compared to before it was found that increasing
 # disorder weight seemed to prevent overfitting (performance of model
-# mobidb-pdb_cnn_3_6_1 ultimately was used as a baseline for later models).
+# mobidb-pdb_cnn_6_2 ultimately was used as a baseline for later models).
 # Training curves appear to be abnormal and seem to indicate possible
 # overfitting occuring (hence why this model's performance was no longer used
 # as a baseline for later models).

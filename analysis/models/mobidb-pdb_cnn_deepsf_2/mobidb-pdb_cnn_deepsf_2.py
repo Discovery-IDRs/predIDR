@@ -12,6 +12,26 @@
 # use 10 kernal
 # add 500 dense
 
+# Purpose:
+# Test out architecture presented in doi: 10.1093/bioinformatics/btx780
+
+# Architecture:
+# disorder weight: x75
+# layers: x10 1D conv layers with 10 filters and 10 kernal
+#         x1 dense layer with 500 nodes
+# epoch: 100
+
+# Significance:
+# Demonstrated better accuracy, MCC, specificty, precision, and F1 performance,
+# compared to mobidb-pdb_cnn_deepsf_2. Demonstrated worse sensitivity
+# performance compared to mobidb-pdb_cnn_deepsf_2.Demonstrated worse accuracy,
+# MCC, specificity, precision, and F1 performance compared to baseline model
+# mobidb-pdb_cnn_6_2. Demonstrated better sensitivity performance compared to
+# baseline model mobidb-pdb_cnn_6_2. Worse performance than baseline model
+# resulted in features of this model not being considered for incorporation
+# into final model.
+
+
 import os
 from math import floor
 
