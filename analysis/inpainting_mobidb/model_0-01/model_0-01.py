@@ -281,8 +281,8 @@ def train(context, target, weight, epochs):
 BATCH_NUM = 10
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
             'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
-sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
-idx2sym = {idx: sym for idx, sym in enumerate(alphabet)}
+sym2idx = {idx: sym for idx, sym in enumerate(alphabet)}
+idx2sym = {sym: idx for idx, sym in enumerate(alphabet)}
 
 # MODEL
 generator = make_generative_model()
