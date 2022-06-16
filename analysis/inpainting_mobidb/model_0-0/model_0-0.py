@@ -232,7 +232,7 @@ def train_step(context, target, weight):
         discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
-def train(context, target, weight, epochs):
+def train(train_context, train_target, train_weight, valid_context, valid_target, valid_weight, epochs):
     """Run training loop.
 
     :param context: sequence around disordered sequence of interest
@@ -242,38 +242,47 @@ def train(context, target, weight, epochs):
     :return: dataframe of losses and accuracy in each epoch of training
     """
     print("Training started!")
-    # Batch data
-    context_batch = np.array_split(context, BATCH_NUM)
-    target_batch = np.array_split(target, BATCH_NUM)
-    weight_batch = np.array_split(weight, BATCH_NUM)
+
+    # Batch training data
+    train_context_batch = np.array_split(train_context, BATCH_NUM)
+    train_target_batch = np.array_split(train_target, BATCH_NUM)
+    train_weight_batch = np.array_split(train_weight, BATCH_NUM)
 
     # Training loop
     records = []
     for epoch in range(epochs):
         print(f'EPOCH {epoch}')
-        for batch, (context, target, weight) in enumerate(zip(context_batch, target_batch, weight_batch)):
+        for batch, (context, target, weight) in enumerate(zip(train_context_batch, train_target_batch, train_weight_batch)):
             print(f'\tBATCH {batch}')
+            # Training with training dataset (not going to run backpropagation on validation set)
             train_step(context, target, weight)
 
-        # Get targets and outputs
-        real_target = target
-        fake_target = generator(context)
-        real_output = discriminator(real_target*weight).numpy()
-        fake_output = discriminator(fake_target*weight).numpy()
+        data_sets = [(train_context, train_target, train_weight, 'train'),
+                     (valid_context, valid_target, valid_weight, 'valid')]
+        record = {}
 
-        # Calculate metrics
-        equality_target = np.argmax(real_target*weight, axis=2) == np.argmax(fake_target*weight, axis=2)
-        sum_context = np.sum(np.invert(weight) + 2)
-        target_length = np.sum(weight)
-        accuracy = (np.sum(equality_target) - sum_context) / target_length
+        for context, target, weight, label in data_sets:
 
-        # Append record to records
-        record = {'epoch': epoch, 'accuracy': accuracy,
-                  'generator loss': generator_loss(fake_output, fake_target, real_target, weight).numpy(),
-                  'discriminator loss': discriminator_loss(real_output, fake_output).numpy()}
-        records.append(record)
+            # Get targets and outputs
+            real_target = target
+            fake_target = generator(context)
+            real_output = discriminator(real_target*weight).numpy()
+            fake_output = discriminator(fake_target*weight).numpy()
+
+            # Calculate metrics
+            equality_target = np.argmax(real_target*weight, axis=2) == np.argmax(fake_target*weight, axis=2)
+            sum_context = np.sum(np.invert(weight) + 2)
+            target_length = np.sum(weight)
+            accuracy = (np.sum(equality_target) - sum_context) / target_length
+            record['epoch'] = epoch
+            record[label + ' accuracy'] = accuracy
+            record[label + ' generator loss'] = generator_loss(fake_output, fake_target, real_target, weight).numpy()
+            record[label + ' discriminator loss'] = discriminator_loss(real_output, fake_output).numpy()
+
+            records.append(record)
 
     df = pd.DataFrame(records)
+
     return df
 
 
@@ -300,12 +309,17 @@ generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
 # LOAD DATA AND TRAIN
-train_seq_path = '../split_data/out/test_seqs.fasta'
-train_label_path = '../split_data/out/test_labels.fasta'
+train_seq_path = '../split_data/out/train_seqs.fasta'
+train_label_path = '../split_data/out/train_labels.fasta'
+valid_seq_path = '../split_data/out/validation_seqs.fasta'
+valid_label_path = '../split_data/out/validation_labels.fasta'
 
 train_seq, train_label = load_data(train_seq_path, train_label_path)
+valid_seq, valid_label = load_data(valid_seq_path, valid_label_path)
+
 train_context, train_weight = get_context_weight(train_seq, train_label)
-df_data = train(train_context, train_seq, train_weight, 10)
+valid_context, valid_weight = get_context_weight(valid_seq, valid_label)
+df_data = train(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight, 500)
 
 # SAVE DATA
 if not os.path.exists("out/"):
