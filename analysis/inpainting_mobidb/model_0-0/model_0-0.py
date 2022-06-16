@@ -80,7 +80,7 @@ def make_generative_model():
     """
     # Convolution
     model = tf.keras.Sequential()
-    model.add(tf.keras.Input(shape=(180, 20)))
+    model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
     model.add(tf.keras.layers.Conv1D(8, 3, strides=1, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
@@ -128,7 +128,7 @@ def make_generative_model():
     model.add(tf.keras.layers.ReLU())
 
     # Last layer transforms filters to probability classes
-    model.add(tf.keras.layers.Conv1DTranspose(20, 3, strides=1, padding='same', activation='softmax', name='D6'))
+    model.add(tf.keras.layers.Conv1DTranspose(len(alphabet), 3, strides=1, padding='same', activation='softmax', name='D6'))
 
     return model
 
@@ -142,7 +142,7 @@ def make_discriminator_model():
     :return: model instance of discriminative model
     """
     model = tf.keras.Sequential()
-    model.add(tf.keras.Input(shape=(180, 20)))
+    model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
     model.add(tf.keras.layers.Conv1D(25, 4, strides=2, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
@@ -259,10 +259,8 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
 
         data_sets = [(train_context, train_target, train_weight, 'train'),
                      (valid_context, valid_target, valid_weight, 'valid')]
-        record = {}
-
+        record = {'epoch': epoch}
         for context, target, weight, label in data_sets:
-
             # Get targets and outputs
             real_target = target
             fake_target = generator(context)
@@ -274,12 +272,10 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
             sum_context = np.sum(np.invert(weight) + 2)
             target_length = np.sum(weight)
             accuracy = (np.sum(equality_target) - sum_context) / target_length
-            record['epoch'] = epoch
             record[label + ' accuracy'] = accuracy
             record[label + ' generator loss'] = generator_loss(fake_output, fake_target, real_target, weight).numpy()
             record[label + ' discriminator loss'] = discriminator_loss(real_output, fake_output).numpy()
-
-            records.append(record)
+        records.append(record)
 
     df = pd.DataFrame(records)
 
@@ -288,8 +284,9 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
 
 # PARAMETERS
 BATCH_NUM = 10
+EPOCH_NUM = 500
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
-            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
 sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
 idx2sym = {idx: sym for idx, sym in enumerate(alphabet)}
 
@@ -319,12 +316,12 @@ valid_seq, valid_label = load_data(valid_seq_path, valid_label_path)
 
 train_context, train_weight = get_context_weight(train_seq, train_label)
 valid_context, valid_weight = get_context_weight(valid_seq, valid_label)
-df_data = train(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight, 500)
+history = train(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight, EPOCH_NUM)
 
 # SAVE DATA
 if not os.path.exists("out/"):
     os.mkdir("out/")
 
-df_data.to_csv('out/metrics.tsv', index=False, sep='\t')
+history.to_csv('out/metrics.tsv', index=False, sep='\t')
 generator.save('out/generator_model.h5')
 discriminator.save('out/discriminator_model.h5')
