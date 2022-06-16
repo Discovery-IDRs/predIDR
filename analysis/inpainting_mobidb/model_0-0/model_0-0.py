@@ -232,7 +232,8 @@ def train_step(context, target, weight):
         discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
-def train(train_context, train_target, train_weight, valid_context, valid_target, valid_weight, epochs):
+def train(train_context, train_target, train_weight, valid_context, valid_target, valid_weight,
+          epochs, batch_size, seed=None):
     """Run training loop.
 
     :param train_context: sequence around disordered sequence of interest
@@ -242,24 +243,35 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
     :param valid_target: disordered sequence of interest
     :param valid_weight: binary classification of data (1: target 0: context)
     :param epochs: number of training loops
+    :param batch_size: number of examples in batch
+    :param seed: value of random seed
     :return: dataframe of losses and accuracy in each epoch of training
     """
-    print("Training started!")
-
-    # Batch training data
-    train_context_batch = np.array_split(train_context, BATCH_NUM)
-    train_target_batch = np.array_split(train_target, BATCH_NUM)
-    train_weight_batch = np.array_split(train_weight, BATCH_NUM)
+    rng = np.random.default_rng(seed)
+    batch_num = train_context.shape[0] // batch_size
+    indices = np.arange(train_context.shape[0])
 
     # Training loop
     records = []
     for epoch in range(epochs):
-        print(f'EPOCH {epoch}')
-        for batch, (context, target, weight) in enumerate(zip(train_context_batch, train_target_batch, train_weight_batch)):
-            print(f'\tBATCH {batch}')
-            # Training with training dataset (not going to run backpropagation on validation set)
-            train_step(context, target, weight)
+        print()  # New line after model summary
+        print(f'EPOCH {epoch} / {epochs}')
 
+        # Update parameters for each batch
+        indices_shuffle = rng.permutation(indices)
+        for batch_idx in range(batch_num):
+            print(f'\r\tBATCH {batch_idx} / {batch_num-1}', end='')  # Use carriage return to move cursor to beginning before printing
+
+            # Get batch
+            indices_batch = indices_shuffle[batch_idx*batch_size:(batch_idx+1)*batch_size]
+            context_batch = train_context[indices_batch]
+            target_batch = train_target[indices_batch]
+            weight_batch = train_weight[indices_batch]
+
+            # Run backpropagation on batch
+            train_step(context_batch, target_batch, weight_batch)
+
+        # Calculate metrics at epoch end
         data_sets = [(train_context, train_target, train_weight, 'train'),
                      (valid_context, valid_target, valid_weight, 'valid')]
         record = {'epoch': epoch}
@@ -280,14 +292,18 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
             record[label + ' discriminator loss'] = discriminator_loss(real_output, fake_output).numpy()
         records.append(record)
 
-    df = pd.DataFrame(records)
+        # Report metrics
+        print()  # Add new line after batch counter
+        print('\taccuracy loss:', record['train accuracy'])
+        print('\tgenerator loss:', record['train generator loss'])
+        print('\tdiscriminator loss:', record['train discriminator loss'])
 
-    return df
+    return records
 
 
 # PARAMETERS
-BATCH_NUM = 10
-EPOCH_NUM = 500
+batch_size = 30
+epoch_num = 500
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
             'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
 sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
@@ -319,12 +335,13 @@ valid_seq, valid_label = load_data(valid_seq_path, valid_label_path)
 
 train_context, train_weight = get_context_weight(train_seq, train_label)
 valid_context, valid_weight = get_context_weight(valid_seq, valid_label)
-history = train(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight, EPOCH_NUM)
+history = train(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight,
+                epoch_num, batch_size, seed=1)
 
 # SAVE DATA
 if not os.path.exists("out/"):
     os.mkdir("out/")
 
-history.to_csv('out/metrics.tsv', index=False, sep='\t')
+pd.DataFrame(history).to_csv('out/metrics.tsv', index=False, sep='\t')
 generator.save('out/generator_model.h5')
 discriminator.save('out/discriminator_model.h5')
