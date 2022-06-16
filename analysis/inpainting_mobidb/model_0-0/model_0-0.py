@@ -254,7 +254,6 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
     # Training loop
     records = []
     for epoch in range(epochs):
-        print()  # New line after model summary
         print(f'EPOCH {epoch} / {epochs}')
 
         # Update parameters for each batch
@@ -293,7 +292,7 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
         records.append(record)
 
         # Report metrics
-        print()  # Add new line after batch counter
+        print()  # Add newline after batch counter
         print('\taccuracy loss:', record['train accuracy'])
         print('\tgenerator loss:', record['train generator loss'])
         print('\tdiscriminator loss:', record['train discriminator loss'])
@@ -312,9 +311,11 @@ idx2sym = {idx: sym for idx, sym in enumerate(alphabet)}
 # MODEL
 generator = make_generative_model()
 generator.summary()
+print()  # Newline after model summary
 
 discriminator = make_discriminator_model()
 discriminator.summary()
+print()  # Newline after model summary
 
 # LOSS FUNCTIONS
 cce = tf.keras.losses.CategoricalCrossentropy()
