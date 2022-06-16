@@ -235,9 +235,12 @@ def train_step(context, target, weight):
 def train(train_context, train_target, train_weight, valid_context, valid_target, valid_weight, epochs):
     """Run training loop.
 
-    :param context: sequence around disordered sequence of interest
-    :param target: disordered sequence of interest
-    :param weight: binary classification of data (1: target 0: context)
+    :param train_context: sequence around disordered sequence of interest
+    :param train_target: disordered sequence of interest
+    :param train_weight: binary classification of data (1: target 0: context)
+    :param valid_context: sequence around disordered sequence of interest
+    :param valid_target: disordered sequence of interest
+    :param valid_weight: binary classification of data (1: target 0: context)
     :param epochs: number of training loops
     :return: dataframe of losses and accuracy in each epoch of training
     """
