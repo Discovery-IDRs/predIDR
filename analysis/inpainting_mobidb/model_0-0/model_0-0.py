@@ -304,7 +304,7 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
 batch_size = 30
 epoch_num = 500
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
-            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
+            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
 idx2sym = {idx: sym for idx, sym in enumerate(alphabet)}
 
