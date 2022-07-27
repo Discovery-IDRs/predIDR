@@ -80,7 +80,7 @@ def make_generative_model():
     """
     # Convolution
     model = tf.keras.Sequential()
-    model.add(tf.keras.Input(shape=(180, 20)))
+    model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
     model.add(tf.keras.layers.Conv1D(8, 3, strides=1, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
@@ -128,7 +128,7 @@ def make_generative_model():
     model.add(tf.keras.layers.ReLU())
 
     # Last layer transforms filters to probability classes
-    model.add(tf.keras.layers.Conv1DTranspose(20, 3, strides=1, padding='same', activation='softmax', name='D6'))
+    model.add(tf.keras.layers.Conv1DTranspose(len(alphabet), 3, strides=1, padding='same', activation='softmax', name='D6'))
 
     return model
 
@@ -142,7 +142,7 @@ def make_discriminator_model():
     :return: model instance of discriminative model
     """
     model = tf.keras.Sequential()
-    model.add(tf.keras.Input(shape=(180, 20)))
+    model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
     model.add(tf.keras.layers.Conv1D(25, 4, strides=2, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
@@ -232,64 +232,90 @@ def train_step(context, target, weight):
         discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
-def train(context, target, weight, epochs):
+def train(train_context, train_target, train_weight, valid_context, valid_target, valid_weight,
+          epochs, batch_size, seed=None):
     """Run training loop.
 
-    :param context: sequence around disordered sequence of interest
-    :param target: disordered sequence of interest
-    :param weight: binary classification of data (1: target 0: context)
+    :param train_context: sequence around disordered sequence of interest
+    :param train_target: disordered sequence of interest
+    :param train_weight: binary classification of data (1: target 0: context)
+    :param valid_context: sequence around disordered sequence of interest
+    :param valid_target: disordered sequence of interest
+    :param valid_weight: binary classification of data (1: target 0: context)
     :param epochs: number of training loops
+    :param batch_size: number of examples in batch
+    :param seed: value of random seed
     :return: dataframe of losses and accuracy in each epoch of training
     """
-    print("Training started!")
-    # Batch data
-    context_batch = np.array_split(context, BATCH_NUM)
-    target_batch = np.array_split(target, BATCH_NUM)
-    weight_batch = np.array_split(weight, BATCH_NUM)
+    rng = np.random.default_rng(seed)
+    batch_num = train_context.shape[0] // batch_size
+    indices = np.arange(train_context.shape[0])
 
     # Training loop
     records = []
     for epoch in range(epochs):
-        print(f'EPOCH {epoch}')
-        for batch, (context, target, weight) in enumerate(zip(context_batch, target_batch, weight_batch)):
-            print(f'\tBATCH {batch}')
-            train_step(context, target, weight)
+        print(f'EPOCH {epoch} / {epochs}')
 
-        # Get targets and outputs
-        real_target = target
-        fake_target = generator(context)
-        real_output = discriminator(real_target*weight).numpy()
-        fake_output = discriminator(fake_target*weight).numpy()
+        # Update parameters for each batch
+        indices_shuffle = rng.permutation(indices)
+        for batch_idx in range(batch_num):
+            print(f'\r\tBATCH {batch_idx} / {batch_num-1}', end='')  # Use carriage return to move cursor to beginning before printing
 
-        # Calculate metrics
-        equality_target = np.argmax(real_target*weight, axis=2) == np.argmax(fake_target*weight, axis=2)
-        sum_context = np.sum(np.invert(weight) + 2)
-        target_length = np.sum(weight)
-        accuracy = (np.sum(equality_target) - sum_context) / target_length
+            # Get batch
+            indices_batch = indices_shuffle[batch_idx*batch_size:(batch_idx+1)*batch_size]
+            context_batch = train_context[indices_batch]
+            target_batch = train_target[indices_batch]
+            weight_batch = train_weight[indices_batch]
 
-        # Append record to records
-        record = {'epoch': epoch, 'accuracy': accuracy,
-                  'generator loss': generator_loss(fake_output, fake_target, real_target, weight).numpy(),
-                  'discriminator loss': discriminator_loss(real_output, fake_output).numpy()}
+            # Run backpropagation on batch
+            train_step(context_batch, target_batch, weight_batch)
+
+        # Calculate metrics at epoch end
+        data_sets = [(train_context, train_target, train_weight, 'train'),
+                     (valid_context, valid_target, valid_weight, 'valid')]
+        record = {'epoch': epoch}
+        for context, target, weight, label in data_sets:
+            # Get targets and outputs
+            real_target = target
+            fake_target = generator(context)
+            real_output = discriminator(real_target*weight).numpy()
+            fake_output = discriminator(fake_target*weight).numpy()
+
+            # Calculate metrics
+            equality_target = np.argmax(real_target*weight, axis=2) == np.argmax(fake_target*weight, axis=2)
+            sum_context = np.sum(np.invert(weight) + 2)
+            target_length = np.sum(weight)
+            accuracy = (np.sum(equality_target) - sum_context) / target_length
+            record[label + ' accuracy'] = accuracy
+            record[label + ' generator loss'] = generator_loss(fake_output, fake_target, real_target, weight).numpy()
+            record[label + ' discriminator loss'] = discriminator_loss(real_output, fake_output).numpy()
         records.append(record)
 
-    df = pd.DataFrame(records)
-    return df
+        # Report metrics
+        print()  # Add newline after batch counter
+        print('\taccuracy loss:', record['train accuracy'])
+        print('\tgenerator loss:', record['train generator loss'])
+        print('\tdiscriminator loss:', record['train discriminator loss'])
+
+    return records
 
 
 # PARAMETERS
-BATCH_NUM = 10
+batch_size = 30
+epoch_num = 500
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
-            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
-sym2idx = {idx: sym for idx, sym in enumerate(alphabet)}
-idx2sym = {sym: idx for idx, sym in enumerate(alphabet)}
+            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
+sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
+idx2sym = {idx: sym for idx, sym in enumerate(alphabet)}
 
 # MODEL
 generator = make_generative_model()
 generator.summary()
+print()  # Newline after model summary
 
 discriminator = make_discriminator_model()
 discriminator.summary()
+print()  # Newline after model summary
 
 # LOSS FUNCTIONS
 cce = tf.keras.losses.CategoricalCrossentropy()
@@ -300,17 +326,23 @@ generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
 # LOAD DATA AND TRAIN
-train_seq_path = '../split_data/out/test_seqs.fasta'
-train_label_path = '../split_data/out/test_labels.fasta'
+train_seq_path = '../split_data/out/train_seqs.fasta'
+train_label_path = '../split_data/out/train_labels.fasta'
+valid_seq_path = '../split_data/out/validation_seqs.fasta'
+valid_label_path = '../split_data/out/validation_labels.fasta'
 
 train_seq, train_label = load_data(train_seq_path, train_label_path)
+valid_seq, valid_label = load_data(valid_seq_path, valid_label_path)
+
 train_context, train_weight = get_context_weight(train_seq, train_label)
-df_data = train(train_context, train_seq, train_weight, 10)
+valid_context, valid_weight = get_context_weight(valid_seq, valid_label)
+history = train(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight,
+                epoch_num, batch_size, seed=1)
 
 # SAVE DATA
 if not os.path.exists("out/"):
     os.mkdir("out/")
 
-df_data.to_csv('out/metrics.tsv', index=False, sep='\t')
+pd.DataFrame(history).to_csv('out/metrics.tsv', index=False, sep='\t')
 generator.save('out/generator_model.h5')
 discriminator.save('out/discriminator_model.h5')
