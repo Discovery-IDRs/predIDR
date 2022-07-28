@@ -82,53 +82,37 @@ def make_generative_model():
     model = tf.keras.Sequential()
     model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
-    model.add(tf.keras.layers.Conv1D(8, 3, strides=1, padding='same', name='C1'))
+    model.add(tf.keras.layers.Conv1D(2, 2, strides=1, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
-    model.add(tf.keras.layers.Conv1D(16, 3, strides=1, padding='same', name='C2'))
+    model.add(tf.keras.layers.Conv1D(4, 2, strides=1, padding='same', name='C2'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
-    model.add(tf.keras.layers.Conv1D(32, 3, strides=1, padding='same', name='C3'))
+    model.add(tf.keras.layers.Conv1D(8, 2, strides=1, padding='same', name='C3'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
-    model.add(tf.keras.layers.Conv1D(64, 3, strides=1, padding='same', name='C4'))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.ReLU())
-
-    model.add(tf.keras.layers.Conv1D(128, 3, strides=1, padding='same', name='C5'))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.ReLU())
-
-    model.add(tf.keras.layers.Conv1D(256, 3, strides=1, padding='same', name='C6'))
+    model.add(tf.keras.layers.Conv1D(16, 2, strides=1, padding='same', name='C4'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
     # Deconvolution
-    model.add(tf.keras.layers.Conv1DTranspose(128, 3, strides=1, padding='same', name='D1'))
+    model.add(tf.keras.layers.Conv1DTranspose(8, 2, strides=1, padding='same', name='D1'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
-    model.add(tf.keras.layers.Conv1DTranspose(64, 3, strides=1, padding='same', name='D2'))
+    model.add(tf.keras.layers.Conv1DTranspose(4, 2, strides=1, padding='same', name='D2'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
-    model.add(tf.keras.layers.Conv1DTranspose(32, 3, strides=1, padding='same', name='D3'))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.ReLU())
-
-    model.add(tf.keras.layers.Conv1DTranspose(16, 3, strides=1, padding='same', name='D4'))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.ReLU())
-
-    model.add(tf.keras.layers.Conv1DTranspose(8, 3, strides=1, padding='same', name='D5'))
+    model.add(tf.keras.layers.Conv1DTranspose(2, 2, strides=1, padding='same', name='D3'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
     # Last layer transforms filters to probability classes
-    model.add(tf.keras.layers.Conv1DTranspose(len(alphabet), 3, strides=1, padding='same', activation='softmax', name='D6'))
+    model.add(tf.keras.layers.Conv1DTranspose(len(alphabet), 3, strides=1, padding='same', activation='softmax', name='D4'))
 
     return model
 
@@ -144,19 +128,15 @@ def make_discriminator_model():
     model = tf.keras.Sequential()
     model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
-    model.add(tf.keras.layers.Conv1D(25, 4, strides=2, padding='same', name='C1'))
+    model.add(tf.keras.layers.Conv1D(8, 4, strides=2, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
-    model.add(tf.keras.layers.Conv1D(13, 4, strides=2, padding='same', name='C2'))
+    model.add(tf.keras.layers.Conv1D(4, 4, strides=2, padding='same', name='C2'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 
-    model.add(tf.keras.layers.Conv1D(7, 4, strides=2, padding='same', name='C3'))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.ReLU())
-
-    model.add(tf.keras.layers.Conv1D(4, 4, strides=2, padding='same', name='C4'))
+    model.add(tf.keras.layers.Conv1D(2, 4, strides=2, padding='same', name='C3'))
     model.add(tf.keras.layers.BatchNormalization())
     model.add(tf.keras.layers.ReLU())
 

@@ -80,7 +80,7 @@ def make_generative_model():
     """
     # Convolution
     model = tf.keras.Sequential()
-    model.add(tf.keras.Input(shape=(180, 20)))
+    model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
     model.add(tf.keras.layers.Conv1D(2, 2, strides=1, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
@@ -112,7 +112,7 @@ def make_generative_model():
     model.add(tf.keras.layers.ReLU())
 
     # Last layer transforms filters to probability classes
-    model.add(tf.keras.layers.Conv1DTranspose(20, 3, strides=1, padding='same', activation='softmax', name='D4'))
+    model.add(tf.keras.layers.Conv1DTranspose(len(alphabet), 3, strides=1, padding='same', activation='softmax', name='D4'))
 
     return model
 
@@ -126,7 +126,7 @@ def make_discriminator_model():
     :return: model instance of discriminative model
     """
     model = tf.keras.Sequential()
-    model.add(tf.keras.Input(shape=(180, 20)))
+    model.add(tf.keras.Input(shape=(180, len(alphabet))))
 
     model.add(tf.keras.layers.Conv1D(8, 4, strides=2, padding='same', name='C1'))
     model.add(tf.keras.layers.BatchNormalization())
@@ -194,7 +194,7 @@ def discriminator_loss(real_output, fake_output):
 
 
 # TRAINING
-def train_step(context, target, weight):
+def train_step(context, target, weight, batch_idx, player_interval):
     """Run one step of training."""
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         real_target = target  # For clearer naming :)
@@ -202,14 +202,14 @@ def train_step(context, target, weight):
         real_output = discriminator(real_target*weight, training=True)
         fake_output = discriminator(fake_target*weight, training=True)
 
-        gen_loss = generator_loss(fake_output, fake_target, real_target, weight)
-        disc_loss = discriminator_loss(real_output, fake_output)
-
-        gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
-        gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
-
-        generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
-        discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+        if batch_idx % player_interval == 0:
+            gen_loss = generator_loss(fake_output, fake_target, real_target, weight)
+            gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
+            generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+        else:
+            disc_loss = discriminator_loss(real_output, fake_output)
+            gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
+            discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
 def train(train_context, train_target, train_weight, valid_context, valid_target, valid_weight,
@@ -248,7 +248,7 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
             weight_batch = train_weight[indices_batch]
 
             # Run backpropagation on batch
-            train_step(context_batch, target_batch, weight_batch)
+            train_step(context_batch, target_batch, weight_batch, batch_idx, train_interval)
 
         # Calculate metrics at epoch end
         data_sets = [(train_context, train_target, train_weight, 'train'),
@@ -282,7 +282,8 @@ def train(train_context, train_target, train_weight, valid_context, valid_target
 
 # PARAMETERS
 batch_size = 30
-epoch_num = 500
+train_interval = 10
+epoch_num = 300
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
             'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
 sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
