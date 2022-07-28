@@ -285,7 +285,7 @@ batch_size = 30
 train_interval = 10
 epoch_num = 300
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
-            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', 'X']
+            'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
 idx2sym = {idx: sym for idx, sym in enumerate(alphabet)}
 
@@ -327,4 +327,3 @@ if not os.path.exists("out/"):
 pd.DataFrame(history).to_csv('out/metrics.tsv', index=False, sep='\t')
 generator.save('out/generator_model.h5')
 discriminator.save('out/discriminator_model.h5')
-
