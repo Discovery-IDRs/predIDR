@@ -232,8 +232,8 @@ def train_step(context, target, weight):
         discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
 
-def train(train_context, train_target, train_weight, valid_context, valid_target, valid_weight,
-          epochs, batch_size, seed=None):
+def fit(train_context, train_target, train_weight, valid_context, valid_target, valid_weight,
+        epochs, batch_size, seed=None):
     """Run training loop.
 
     :param train_context: sequence around disordered sequence of interest
@@ -336,8 +336,8 @@ valid_seq, valid_label = load_data(valid_seq_path, valid_label_path)
 
 train_context, train_weight = get_context_weight(train_seq, train_label)
 valid_context, valid_weight = get_context_weight(valid_seq, valid_label)
-history = train(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight,
-                epoch_num, batch_size, seed=1)
+history = fit(train_context, train_seq, train_weight, valid_context, valid_seq, valid_weight,
+              epochs=epoch_num, batch_size=batch_size, seed=1)
 
 # SAVE DATA
 if not os.path.exists("out/"):
