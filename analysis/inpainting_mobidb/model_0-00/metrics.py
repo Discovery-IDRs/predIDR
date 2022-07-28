@@ -1,8 +1,10 @@
-"""Metrics for model_0-0"""
+"""Metrics for model_0-00."""
 
-import pandas as pd
 import os
+
 import matplotlib.pyplot as plt
+import pandas as pd
+
 
 if not os.path.exists("out/"):
     os.mkdir("out/")
@@ -17,7 +19,7 @@ plt.plot(metrics_df['valid discriminator loss'], label='validation discriminator
 plt.xlabel('epochs')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('out/metrics_loss_model0-0.png')
+plt.savefig('out/metrics_loss_model0-00.png')
 plt.close()
 
 plt.plot(metrics_df['train accuracy'], label='training accuracy')
@@ -25,5 +27,5 @@ plt.plot(metrics_df['valid accuracy'], label='validation accuracy')
 plt.xlabel('epochs')
 plt.ylabel('accuracy')
 plt.legend()
-plt.savefig('out/metrics_accuracy_model0-0.png')
+plt.savefig('out/metrics_accuracy_model0-00.png')
 plt.close()
