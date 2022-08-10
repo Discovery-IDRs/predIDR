@@ -12,7 +12,7 @@ that the model is learning from training. The ending accuracy for the validation
 with a training accuracy of 5.4% and a validation accuracy of 5.5%.
 
   
-![Alt text](/Users/SamihaMahin/PycharmProjects/predIDR/analysis/inpainting_mobidb/model_0-0/out/metrics_accuracy_model0-0.png)
+![Alt text](out/metrics_accuracy_model0-0.png)
 
 ### Losses
 The loss curves are very sporadic with values jumping between 0 to 7.5 in the first 300 epochs for the discriminator. 
@@ -21,7 +21,7 @@ that range from 2.5 to 17.5. From 300 to 450 epochs, the discriminator has highe
 ranging from 6 to 10 and the generator values ranging from 1 to 2.5. From 450 to 500 epochs, there are no drastic changes with 
 generator values ranging in a max difference of 1 and the same with the generator. 
 
-![Alt text](/Users/SamihaMahin/PycharmProjects/predIDR/analysis/inpainting_mobidb/model_0-0/out/metrics_loss_model0-0.png)
+![Alt text](out/metrics_loss_model0-0.png)
 
 ## Conclusions
 The model did not converge when therefore looked into diagnosing model architecture problems and deduced that there needs

@@ -2,71 +2,10 @@
 
 import os
 
-import Bio.SeqIO as SeqIO
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-
-
-# Utility functions
-def load_data(seq_path, label_path):
-    """Return sequences and labels from FASTA files as arrays.
-
-    :param seq_path: path for FASTA file of amino acid sequences
-    :param label_path: path for FASTA file of labels of amino acid sequences where disordered residues are labeled as 1
-        and ordered residues are labeled as 0
-    :return: array of one hot encoded sequences and array of labels
-    """
-    ohes = []
-    labels = []
-    for record_seq, record_label in zip(SeqIO.parse(seq_path, 'fasta'), SeqIO.parse(label_path, 'fasta')):
-        # Convert string seq to one-hot-encoded seq
-        ohe = seq_to_OHE(str(record_seq.seq))
-        ohes.append(ohe)
-
-        # Convert string label to int label
-        label = [int(sym) for sym in record_label]
-        labels.append(label)
-
-    return np.array(ohes), np.array(labels)
-
-
-def get_context_weight(ohe, label):
-    """Return context and weight from one-hot-encoded sequences and labels.
-
-    :param ohe: one hot ended 2D arrays of sequences
-    :param label: array of labels corresponding to seq_ohc
-    :return: context and weight according to ohc and label
-    """
-    weight = np.expand_dims(label, axis=2)  # weight is binary classification of data (1:target 0: context)
-    context = (np.invert(weight) + 2) * ohe  # context is the opposite of the weight (0:target 1: context)
-
-    return context, weight
-
-
-def seq_to_OHE(seq):
-    """Return amino acid sequence as one-hot-encoded vector.
-
-    :param seq: amino acid sequence as string
-    :return: one-hot-encoded string as 2D array
-    """
-    ohe = np.array([sym2idx[sym] for sym in seq])
-    ohe = tf.keras.utils.to_categorical(ohe, num_classes=len(alphabet), dtype='int32')
-    return ohe
-
-
-def OHE_to_seq(ohe):
-    """Return one-hot-encoded vector as amino acid sequence.
-
-    :param ohe: one-hot-encoded string as 2D array
-    :return: amino acid sequence as list
-    """
-    x = np.argmax(ohe, axis=1)
-    seq = []
-    for idx in x:
-        sym = alphabet[idx]
-        seq.append(sym)
-    return seq
+from src.inpainting_mobidb.utils import load_data, get_context_weight
 
 
 # MODELS
@@ -112,7 +51,8 @@ def make_generative_model():
     model.add(tf.keras.layers.ReLU())
 
     # Last layer transforms filters to probability classes
-    model.add(tf.keras.layers.Conv1DTranspose(len(alphabet), 3, strides=1, padding='same', activation='softmax', name='D4'))
+    model.add(
+        tf.keras.layers.Conv1DTranspose(len(alphabet), 3, strides=1, padding='same', activation='softmax', name='D4'))
 
     return model
 
@@ -199,8 +139,8 @@ def train_step(context, target, weight, batch_idx, player_interval):
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         real_target = target  # For clearer naming :)
         fake_target = generator(context, training=True)
-        real_output = discriminator(real_target*weight, training=True)
-        fake_output = discriminator(fake_target*weight, training=True)
+        real_output = discriminator(real_target * weight, training=True)
+        fake_output = discriminator(fake_target * weight, training=True)
 
         if batch_idx % player_interval == 0:
             gen_loss = generator_loss(fake_output, fake_target, real_target, weight)
@@ -239,10 +179,11 @@ def fit(train_context, train_target, train_weight, valid_context, valid_target, 
         # Update parameters for each batch
         indices_shuffle = rng.permutation(indices)
         for batch_idx in range(batch_num):
-            print(f'\r\tBATCH {batch_idx} / {batch_num-1}', end='')  # Use carriage return to move cursor to beginning before printing
+            print(f'\r\tBATCH {batch_idx} / {batch_num - 1}',
+                  end='')  # Use carriage return to move cursor to beginning before printing
 
             # Get batch
-            indices_batch = indices_shuffle[batch_idx*batch_size:(batch_idx+1)*batch_size]
+            indices_batch = indices_shuffle[batch_idx * batch_size:(batch_idx + 1) * batch_size]
             context_batch = train_context[indices_batch]
             target_batch = train_target[indices_batch]
             weight_batch = train_weight[indices_batch]
@@ -258,11 +199,11 @@ def fit(train_context, train_target, train_weight, valid_context, valid_target, 
             # Get targets and outputs
             real_target = target
             fake_target = generator(context)
-            real_output = discriminator(real_target*weight).numpy()
-            fake_output = discriminator(fake_target*weight).numpy()
+            real_output = discriminator(real_target * weight).numpy()
+            fake_output = discriminator(fake_target * weight).numpy()
 
             # Calculate metrics
-            equality_target = np.argmax(real_target*weight, axis=2) == np.argmax(fake_target*weight, axis=2)
+            equality_target = np.argmax(real_target * weight, axis=2) == np.argmax(fake_target * weight, axis=2)
             sum_context = np.sum(np.invert(weight) + 2)
             target_length = np.sum(weight)
             accuracy = (np.sum(equality_target) - sum_context) / target_length
@@ -312,8 +253,8 @@ train_label_path = '../split_data/out/train_labels.fasta'
 valid_seq_path = '../split_data/out/validation_seqs.fasta'
 valid_label_path = '../split_data/out/validation_labels.fasta'
 
-train_seq, train_label = load_data(train_seq_path, train_label_path)
-valid_seq, valid_label = load_data(valid_seq_path, valid_label_path)
+train_seq, train_label = load_data(train_seq_path, train_label_path, sym2idx)
+valid_seq, valid_label = load_data(valid_seq_path, valid_label_path, sym2idx)
 
 train_context, train_weight = get_context_weight(train_seq, train_label)
 valid_context, valid_weight = get_context_weight(valid_seq, valid_label)

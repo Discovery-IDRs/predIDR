@@ -4,6 +4,7 @@ import os
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import tensorflow as tf
 
 
 if not os.path.exists("out/"):
@@ -29,3 +30,10 @@ plt.ylabel('accuracy')
 plt.legend()
 plt.savefig('out/metrics_accuracy_model0-00.png')
 plt.close()
+
+loaded_model = tf.keras.models.load_model('out/generator_model.h5')
+valid_seq_path = '../split_data/out/validation_seqs.fasta'
+valid_label_path = '../split_data/out/validation_labels.fasta'
+
+#valid_seq, valid_label = load_data(valid_seq_path, valid_label_path)
+#loaded_model()
