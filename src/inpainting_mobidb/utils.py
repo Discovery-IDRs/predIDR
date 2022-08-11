@@ -44,6 +44,7 @@ def get_context_weight(ohe, label):
 def seq_to_OHE(seq, sym2idx):
     """Return amino acid sequence as one-hot-encoded vector.
 
+    :param sym2idx:
     :param seq: amino acid sequence as string
     :return: one-hot-encoded string as 2D array
     """
@@ -55,6 +56,7 @@ def seq_to_OHE(seq, sym2idx):
 def OHE_to_seq(ohe, idx2sym):
     """Return one-hot-encoded vector as amino acid sequence.
 
+    :param idx2sym:
     :param ohe: one-hot-encoded string as 2D array
     :return: amino acid sequence as list
     """
