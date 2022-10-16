@@ -4,9 +4,40 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
-# add 256 dense
+# Purpose:
+# Examine the effect adding a 256 node dense layer in 
+# combination with x75 disorder weight and x100 epochs
+# has on performance.
+
+# Architecture:
+# disorder weight: x75
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+#         x1 dense layer with 256 nodes
+# epoch: 100
+
+# Significance:
+# Building upon mobidb-pdb_cnn_6_2, this was part of the further development
+# of mobidb-pdb_cnn_3_6_1 which was undertaken due to interest in the use of a
+# x75 disorder weight. x75 disorder weight was of interest because it was the
+# smallest weight tested which seemed to properly counteract overfitting. Other
+# models tested did implement even larger disorder weights and did not appear 
+# to demonstrate any abnormal behavior while also counteracting overfitting.
+# However, there was a desire to limit the size of the disorder weight as much
+# as possible in order to minimize manipulation of the dataset. This, along with
+# the fact that these other models did not appear to demonstrate any significant
+# increases in performance, made x75 disorder weight appear to be the best choice
+# going forward. In general, this series of models seemed to demonstrate that
+# adding dense layers with different numbers of nodes increased accuracy, MCC, 
+# specificity, precision, and F1 and decreased sensitivity relative to baseline model
+# mobidb-pdb_cnn_6_2. Changing the number of nodes in the dense layer did not really
+# create a clear pattern in response. This series of models did have normal looking 
+# training curves (features rapid initial growth of accuracy and specificity that 
+# eventually levels off, something which would be expected from a model that is 
+# progressively learning to make better predictions; this is in contrast to the 
+# overfitting models which demonstrate abnormally good accuracy and specificity 
+# right from the start of training). Due to comparable performance to baseline,
+# this series of models is currently not being considered for further investigation.
+
 
 import os
 from math import floor

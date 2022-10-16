@@ -4,8 +4,44 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 200
-# increase epoch to 100
+# Purpose:
+# Examine how increasing the epoch to 100 in combination with a x200 disorder 
+# weight affects the performance.
+
+# Architecture:
+# disorder weight: x200
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+# epoch: 100
+
+# Significance:
+# When the 3 series of models were being experimented with, there was a concern
+# that training was being ended too early, preventing full observation of the
+# learning behaviors of the models. The 6 series were an attempt to catch any
+# behavior missed in the 3 series by extending the training to 100 epochs instead
+# of 50. In general, the behavior of the 6 series mirrored that of their 3 series
+# counterparts. The training curves of the 6 series did not seem to show that
+# any new learning behavior was being missed and seemed to indicate that the
+# training metrics had mostly stabilized at 50 epochs. The 6 series did as a rule
+# each have lower sensitivity and higher accuracy, MCC, specificity, precision, 
+# and F1 compared to their equivalent 3 series counterpart. Interestingly, this
+# seems to be similar to the effect produce by using a lower disorder weight,
+# possibly indicating that increasing epochs may increase overfitting (this is
+# however only a tentative guess). Like other 6 series models, the behavior of
+# this model resembled that of its 3 series counterpart mobidb_pdb_cnn_3_8 as
+# described above. The training curves of this model closely follow that of 
+# mobidb-pdb_cnn_3_8 in the beginning and continue the trend of leveling off
+# which was seen at 50 epochs in the mobidb-pdb_cnn_3_8 training curves. Note
+# however that the differences between the metrics for this model and those of
+# its 3 series equivalent mobidb-pdb_cnn_3_8 were in general greater compared
+# to the differences in metrics between models 6.0 through 6.3 and their 3 series 
+# equivalents. This model was ultimately passed over for further consideration
+# and development in favor of mobidb-pdb_cnn_3_6_1 and mobidb-pdb_cnn_6_2 since
+# the two models mentioned were able to counteract overfitting and had similar
+# performance while using a smaller disorder weight. Due to this, they were 
+# preferred over this model as there was a desire to limit the size of the
+# disorder weight as much as possible in order to minimize manipulation of 
+# the dataset.
+
 
 import os
 from math import floor

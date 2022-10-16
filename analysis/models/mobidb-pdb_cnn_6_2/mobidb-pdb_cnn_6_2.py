@@ -4,8 +4,49 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
+# Purpose:
+# Examine how increasing the epoch to 100 in combination with a x75 disorder weight
+# affects the performance.
+
+# Architecture:
+# disorder weight: x75
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+# epoch: 100
+
+# Significance:
+# When the 3 series of models were being experimented with, there was a concern
+# that training was being ended too early, preventing full observation of the
+# learning behaviors of the models. The 6 series were an attempt to catch any
+# behavior missed in the 3 series by extending the training to 100 epochs instead
+# of 50. In general, the behavior of the 6 series mirrored that of their 3 series
+# counterparts. The training curves of the 6 series did not seem to show that
+# any new learning behavior was being missed and seemed to indicate that the
+# training metrics had mostly stabilized at 50 epochs. The 6 series did as a rule
+# each have lower sensitivity and higher accuracy, MCC, specificity, precision, 
+# and F1 compared to their equivalent 3 series counterpart. Interestingly, this
+# seems to be similar to the effect produce by using a lower disorder weight,
+# possibly indicating that increasing epochs may increase overfitting (this is
+# however only a tentative guess). Like other 6 series models, the behavior of
+# this model resembled that of its 3 series counterpart mobidb_pdb_cnn_3_6_1 as
+# described above. The training curves of this model closely follow that of 
+# mobidb-pdb_cnn_3_6_1 in the beginning and continue the trend of leveling off
+# which was seen at 50 epochs in the mobidb-pdb_cnn_3_6_1 training curves. This 
+# model was ultimately used along with mobidb-pdb_cnn_3_6_1 (which this model 
+# was based on) as the templates upon which further models were developed. 
+# Naturally, this meant that the performance of this model also served alongside
+# the performance of mobidb-pdb_cnn_3_6_1 as a baseline to which the performances
+# of other model architectures were compared to. The reason for choosing this 
+# model and mobidb-pdb_cnn_3_6_1 to serve as templates and baselines was because
+# x75 disorder weight was the smallest weight tested which seemed to properly 
+# counteract overfitting. While other models which implemented even larger 
+# disorder weights did not appear to demonstrate any abnormal behavior and 
+# did also counteract overfitting, there was a desire to limit the size of 
+# the disorder weight as much as possible in order to minimize manipulation 
+# of the dataset. This along with the fact that these other models did not 
+# appear to demonstrate any significant increases in performance meant that
+# they were ultimately passed over for further consideration and development
+# in favor of this model and mobidb-pdb_cnn_3_6_1.
+
 
 import os
 from math import floor

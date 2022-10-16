@@ -4,9 +4,39 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
-# add 2 conv1d layers
+# Purpose:
+# Examine the effect increasing the the number of 1D conv layers
+# to 4 in combination with a x75 disorder weight and x100 epochs
+# has on performance.
+
+# Architecture:
+# disorder weight: x75
+# layers: x4 1D conv layers with 128 filter and 20 kernal
+# epoch: 100
+
+# Significance:
+# Building upon mobidb-pdb_cnn_6_2, this was part of the further development
+# of mobidb-pdb_cnn_3_6_1 which was undertaken due to interest in the use of a
+# x75 disorder weight. x75 disorder weight was of interest because it was the
+# smallest weight tested which seemed to properly counteract overfitting. Other
+# models tested did implement even larger disorder weights and did not appear 
+# to demonstrate any abnormal behavior while also counteracting overfitting.
+# However, there was a desire to limit the size of the disorder weight as much
+# as possible in order to minimize manipulation of the dataset. This, along with
+# the fact that these other models did not appear to demonstrate any significant
+# increases in performance, made x75 disorder weight appear to be the best choice
+# going forward. In general, the performance of this series of models did not 
+# differ much or was even worse than that of baseline model mobidb-pdb_cnn_6_2.
+# This specific model had increased accuracy, MCC, specificity, precision, and F1
+# and decreased sensitivity relative to mobidb-pdb_cnn_6_2. Additionally, this 
+# specific model had normal looking training curves (rapid initial growth of accuracy
+# and specificity that eventually levels off, something which would be expected from
+# a model that is progressively learning to make better predictions; this is in 
+# contrast to the overfitting models which demonstrate abnormally good accuracy and
+# specificity right from the start of training). Due to the fact that its performance
+# did not differ much from baseline, this model is currently not being considered
+# for further investigation.
+
 
 import os
 from math import floor

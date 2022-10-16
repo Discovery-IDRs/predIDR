@@ -5,8 +5,7 @@
 # cudnn 7.6
 
 # Purpose:
-# Examine the effect increasing the kernal of the conv layers to 200 has on
-# performance.
+# Examine how increasing the kernal of the conv layers to 200 affects performance.
 
 # Architecture:
 # disorder weight: x1
@@ -14,9 +13,11 @@
 # epoch: 50
 
 # Significance:
-# Training curves appear to be abnormal and seem to indicate possible
-# overfitting occuring. This model was ultimately disregarded when it was found
-# that increasing disorder weight seemed to prevent overfitting.
+# Training curves appear to be abnormal and seem to indicate possible overfitting
+# is occuring. This model was ultimately disregarded from further consideration and
+# development when it was found that increasing disorder weight seemed to prevent
+# overfitting.
+
 
 import os
 from math import floor

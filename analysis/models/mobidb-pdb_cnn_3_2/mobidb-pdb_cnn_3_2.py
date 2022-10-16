@@ -4,7 +4,30 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 5
+# Purpose:
+# Examine the effect increasing the disorder weight to 5 has on performance
+# and overfitting.
+
+# Architecture:
+# disorder weight: x5
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+# epoch: 50
+
+# Significance:
+# The 3 series of models were an attempt to try using an increase in disorder weight
+# to counteract the overfitting issue caused by the imbalance of classes. They appear
+# to demonstrate that, as disorder weight increases, accuracy, MCC, specificity, 
+# precision, and f1 scores decrease while sensitivity scores increase. While this 
+# particular model does appear to follow the trend of sensitivity increasing as disorder
+# weight increases, it does differ in other aspects in that it actually shows a very
+# slight increase in accuracy, MCC, specificity, precision, and F1 compared to model 3.1. 
+# Additionally, the 3 series seems to demonstrate that the training curves look less and
+# less abnormal as the disorder weight increases seeming to indicate that less and less 
+# overfitting is occurring. The training curves still appear to be abnormal in this 
+# particular model and seem to indicate that overfitting is occcuring. As a result, 
+# this model was ultimately passed over for further consideration and development in
+# favor of other models which appeared to demonstrate actual learning behavior.
+
 
 import os
 from math import floor

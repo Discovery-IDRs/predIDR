@@ -4,9 +4,42 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
-# increase kernal to 50
+# Purpose:
+# Examine how increasing the kernal to 50 in combination with a x75 disorder weight
+# and x100 epochs affects the performance. 
+
+# Architecture:
+# disorder weight: x75
+# layers: x2 1D conv layers with 128 filter and 50 kernal
+# epoch: 100
+
+# Significance:
+# Building upon mobidb-pdb_cnn_6_2, this was part of the further development
+# of mobidb-pdb_cnn_3_6_1 which was undertaken due to interest in the use of a
+# x75 disorder weight. x75 disorder weight was of interest because it was the
+# smallest weight tested which seemed to properly counteract overfitting. Other
+# models tested did implement even larger disorder weights and did not appear 
+# to demonstrate any abnormal behavior while also counteracting overfitting.
+# However, there was a desire to limit the size of the disorder weight as much
+# as possible in order to minimize manipulation of the dataset. This, along with
+# the fact that these other models did not appear to demonstrate any significant
+# increases in performance, made x75 disorder weight appear to be the best choice
+# going forward. In general, this series of models (7.1.2, 7.2.2, 7.3.2) seemed 
+# to show that increasing kernal size resulted in a decrease in accuracy, MCC,
+# specificity, precision, and F1 and an increase in sensitivity. Relative to the
+# baseline model mobidb-pdb_cnn_6_2, this series of models in general displayed
+# increased accuracy, MCC, specificity, precision, and F1 but had decreased
+# sensitivity. Additionally, this series of models all had normal looking training
+# curves (rapid initial growth of accuracy and specificity that eventually levels 
+# off, something which would be expected from a model that is progressively learning 
+# to make better predictions; this is in contrast to the overfitting models which
+# demonstrate abnormally good accuracy and specificity right from the start of 
+# training). Note that close examination of the training curve graphs for this series
+# seems to show that the increases in kernal size from 50 to 200 simply cause the 
+# training curves to shift increasingly to the right similar to what was observed 
+# in models 3.6 through 3.9. Due to their relatively balanced performance across all 
+# metrics, the models in this series are being considered for further investigation.
+
 
 import os
 from math import floor

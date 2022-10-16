@@ -4,7 +4,39 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 50
+# Purpose:
+# Examine the effect increasing the disorder weight to 50 has on performance
+# and overfitting.
+
+# Architecture:
+# disorder weight: x50
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+# epoch: 50
+
+# Significance:
+# The 3 series of models were an attempt to try using an increase in disorder weight
+# to counteract the overfitting issue caused by the imbalance of classes. They appear
+# to demonstrate that, as disorder weight increases, accuracy, MCC, specificity, 
+# precision, and f1 scores decrease while sensitivity scores increase. This particular
+# model does appear to follow those trends. Additionally, the 3 series seems to demonstrate
+# that the training curves look less and less abnormal as the disorder weight increases 
+# seeming to indicate that less and less overfitting is occurring. This was the first
+# model which appeared to demonstrate normal looking training curves (note the rapid
+# initial growth of accuracy and specificity that eventually levels off, something
+# which would be expected from a model that is progressively learning to make better
+# predictions; this is in contrast to the overfitting models which demonstrated
+# abnormally good accuracy and specificity right from the start of training). This
+# model was ultimately passed over for further consideration and development due to
+# the fact that it still had a slightly large initial accuracy and specificity 
+# (would expect both to be near 0 for a model which is learning from scratch) 
+# indicating that something abnormal could still be influencing the learning 
+# process of the model. Note also that close examination of the training curve
+# graphs for models 3.6 through 3.9 seems to show that the increases in disorder
+# weight for these models from x50 to x500 appears to simply cause the training
+# curves to shift increasingly to the right, seeming to indicate that the 
+# increased disorder weights simply delay the learning of the models but do
+# not actually change their final performances.
+
 
 import os
 from math import floor

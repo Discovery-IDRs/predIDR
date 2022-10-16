@@ -5,7 +5,8 @@
 # cudnn 7.6
 
 # Purpose:
-# Examine the effect increasing the disorder weight to 2 has on performance.
+# Examine the effect increasing the disorder weight to 2 has on performance
+# and overfitting.
 
 # Architecture:
 # disorder weight: x2
@@ -13,13 +14,18 @@
 # epoch: 50
 
 # Significance:
-# The 3 series of models appear to demonstrate that, as disorder weight
-# increases, accuracy, MCC, specificity, precision, and f1 scores decrease
-# while sensitivity scores increase. This particular model follows that trend.
-# Also, the training curves look less and less abnormal as the disorder weight
-# increases seeming to indicate that less and less overfitting is occurring.
-# The training curves still appear to be abnormal in this particular model and
-# seem to indicate possible overfitting occcuring.
+# The 3 series of models were an attempt to try using an increase in disorder weight
+# to counteract the overfitting issue caused by the imbalance of classes. They appear
+# to demonstrate that, as disorder weight increases, accuracy, MCC, specificity, 
+# precision, and f1 scores decrease while sensitivity scores increase. This particular
+# model does appear to follow those trends. Additionally, the 3 series seems to demonstrate
+# that the training curves look less and less abnormal as the disorder weight increases 
+# seeming to indicate that less and less overfitting is occurring. The training curves
+# still appear to be abnormal in this particular model and seem to indicate that
+# overfitting is occcuring. As a result, this model was ultimately passed over for
+# further consideration and development in favor of other models which appeared to 
+# demonstrate actual learning behavior.
+
 
 import os
 from math import floor

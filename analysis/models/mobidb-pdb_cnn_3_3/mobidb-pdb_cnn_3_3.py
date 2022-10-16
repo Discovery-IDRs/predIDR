@@ -4,7 +4,36 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 10
+# Purpose:
+# Examine the effect increasing the disorder weight to 10 has on performance
+# and overfitting.
+
+# Architecture:
+# disorder weight: x10
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+# epoch: 50
+
+# Significance:
+# The 3 series of models were an attempt to try using an increase in disorder weight
+# to counteract the overfitting issue caused by the imbalance of classes. They appear
+# to demonstrate that, as disorder weight increases, accuracy, MCC, specificity, 
+# precision, and f1 scores decrease while sensitivity scores increase. This particular
+# model does appear to follow those trends. Additionally, the 3 series seems to demonstrate
+# that the training curves look less and less abnormal as the disorder weight increases 
+# seeming to indicate that less and less overfitting is occurring. The training curves
+# still appear to be abnormal in this particular model and seem to indicate that
+# overfitting is occcuring. However, they do seem to be beginning to show that some 
+# type of training is occurring (note what appears to be a slight positive trend in
+# the accuracy and specificity and the noticeable downward trend in sensitivity). This
+# model was used for further experimentation for a short while, being utilized as a 
+# template upon which a few other models were developed on. This was because using a x10
+# disorder weight makes it so that the disordered and ordered residues are theoretically
+# equally represented in the dataset, and there was interest into how this would affect 
+# the behavior of the models being trained. However, overfitting was a persistent issue
+# when using a x10 disorder weight. Initial tests appeared to indicate that manipulation
+# of other hyperparameters would not be able to resolve this issue causing further
+# development down this path to be discontinued.
+
 
 import os
 from math import floor

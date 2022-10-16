@@ -4,8 +4,35 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 10
-# increase epoch to 100
+# Purpose:
+# Examine how increasing the epoch to 100 in combination with a x10 disorder weight
+# affects the performance.
+
+# Architecture:
+# disorder weight: x10
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+# epoch: 100
+
+# Significance:
+# When the 3 series of models were being experimented with, there was a concern
+# that training was being ended too early, preventing full observation of the
+# learning behaviors of the models. The 6 series were an attempt to catch any
+# behavior missed in the 3 series by extending the training to 100 epochs instead
+# of 50. In general, the behavior of the 6 series mirrored that of their 3 series
+# counterparts. The training curves of the 6 series did not seem to show that
+# any new learning behavior was being missed and seemed to indicate that the
+# training metrics had mostly stabilized at 50 epochs. The 6 series did as a rule
+# each have lower sensitivity and higher accuracy, MCC, specificity, precision, 
+# and F1 compared to their equivalent 3 series counterpart. Interestingly, this
+# seems to be similar to the effect produce by using a lower disorder weight,
+# possibly indicating that increasing epochs may increase overfitting (this is
+# however only a tentative guess). This particular model was part of the further
+# development based on what was done in mobidb-pdb_cnn_3_3. Notably, the training
+# curves for this model resemble those of mobidb-pdb_cnn_3_3 in that they are also
+# appear abnormal and seem to suggest that overfitting is occurring. This model was
+# ultimately passed over for further consideration and development in favor of other
+# models which appeared to more convincingly demonstrate actual learning behavior.
+
 
 import os
 from math import floor

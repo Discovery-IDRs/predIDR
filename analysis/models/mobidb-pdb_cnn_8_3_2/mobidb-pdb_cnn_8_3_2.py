@@ -4,9 +4,43 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
-# dropout 0.8
+# Purpose:
+# Examine how adding a 0.8 dropout layer in combination with a x75 disorder
+# weight and x100 epochs affects the performance. 
+
+# Architecture:
+# disorder weight: x75
+# layers: x2 1D conv layers with 128 filter and 20 kernal
+#         x1 0.8 dropout layer
+# epoch: 100
+
+# Significance:
+# Building upon mobidb-pdb_cnn_6_2, this was part of the further development
+# of mobidb-pdb_cnn_3_6_1 which was undertaken due to interest in the use of a
+# x75 disorder weight. x75 disorder weight was of interest because it was the
+# smallest weight tested which seemed to properly counteract overfitting. Other
+# models tested did implement even larger disorder weights and did not appear 
+# to demonstrate any abnormal behavior while also counteracting overfitting.
+# However, there was a desire to limit the size of the disorder weight as much
+# as possible in order to minimize manipulation of the dataset. This, along with
+# the fact that these other models did not appear to demonstrate any significant
+# increases in performance, made x75 disorder weight appear to be the best choice
+# going forward. The 8 series of models were specifically looking at if use of
+# dropout could lead to models which had better generalizability. Overall, the
+# 8 series seemed to demonstrate that increasing dropout results in decreased
+# accuracy, MCC, specificity, precision, and F1 and increased sensitivity. Relative
+# to the baseline model mobidb-pdb_cnn_6_2, the 8 series generally had decreased
+# accuracy, MCC, specificity, precision, and F1 and increased sensitivity. 
+# Additionally, this series of models all had generally normal looking training 
+# curves (rapid initial growth of accuracy and specificity that eventually levels 
+# off, something which would be expected from a model that is progressively learning
+# to make better predictions; this is in contrast to the overfitting models which
+# demonstrate abnormally good accuracy and specificity right from the start of 
+# training). Based on the performance of the 8 series, it appears that the addition
+# of dropout did not seem to significantly improve model performance. As such, while
+# the 8 series of models may be considered for further investigation in the future, 
+# they are mostly currently being set aside in favor of more promising models. 
+
 
 import os
 from math import floor

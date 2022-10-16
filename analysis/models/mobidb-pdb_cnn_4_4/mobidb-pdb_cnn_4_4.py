@@ -10,12 +10,13 @@
 
 # Architecture:
 # disorder weight: x1
-# layers: x6 1D conv layers with 128 filter and 200 kernal
+# layers: x6 1D conv layers with 128 filter and 20 kernal
 # epoch: 50
 
 # Significance:
-# Model only predicts residues as ordered. Was immediately disregarded from
-# further consideration.
+# Model only predicts residues as ordered. Disregarded from further consideration
+# and development.
+
 
 import os
 from math import floor

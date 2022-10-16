@@ -4,9 +4,38 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 10
-# increase epoch to 100
-# increase kernal to 100
+# Purpose:
+# Examine how increasing the kernal to 100 in combination with a x10 disorder weight
+# and x100 epochs affects the performance. 
+
+# Architecture:
+# disorder weight: x10
+# layers: x2 1D conv layers with 128 filter and 100 kernal
+# epoch: 100
+
+# Significance:
+# Building upon mobidb-pdb_cnn_6_0, this was part of the further development
+# of mobidb-pdb_cnn_3_3 which was undertaken due to interest in the use of a
+# x10 disorder weight (this makes it so that the disordered and ordered residues
+# are theoretically equally represented in the dataset). This model showed 
+# improved accuracy, MCC, specificity, precision, and F1 performance and worse
+# sensitivity performance compared to baseline model mobidb-pdb_cnn_6_0. This
+# model shows slightly improved accuracy, specificity, and precision performance
+# and slightly worse MCC and F1 performance and worse sensitivity performance 
+# compared to its previous counterpart mobidb-pdb_cnn_7_1_1 which used a kernal
+# of 50. Like other models which used x10 disorder weight, the training curves 
+# for this particular model appear abnormal and seem to indicate that overfitting
+# is occurring. However, there is a slight indication that some type of training 
+# is occurring (note what appears to be a slight positive trend in the accuracy,
+# MCC, specificity, precision and F1 and the noticeable downward trend in 
+# sensitivity). This model was ultimately passed over for further consideration
+# and development in favor of other models which appeared to more convincingly 
+# demonstrate actual learning behavior. As this model helps show, overfitting 
+# was a persistent issue when using a x10 disorder weight. Since initial tests,
+# such as this one, appeared to indicate that manipulation of other hyperparameters
+# would not be able to resolve this issue, further development down this path was
+# ultimately discontinued.
+
 
 import os
 from math import floor

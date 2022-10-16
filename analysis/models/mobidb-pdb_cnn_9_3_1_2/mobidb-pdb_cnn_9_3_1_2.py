@@ -4,10 +4,56 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
-# multiheaded kernal 50,100
-# only 1 conv layer per head
+# Purpose:
+# Examine the performance of a multiheaded model with a 500 kernal head that
+# has only 1 1D conv layer and a 100 kernal head that has only 1 1D conv
+# layer with a x75 disorder weight trained for x100 epochs.
+
+# Architecture:
+# disorder weight: x75
+# layers: Head 1
+#             x1 1D conv layers with 128 filter and 50 kernal
+#         Head 2
+#             x1 1D conv layers with 128 filter and 100 kernal
+#         x1 dense layer with 128 nodes
+# epoch: 100
+
+# Significance:
+# Building upon mobidb-pdb_cnn_9_3_2, this was part of the further development
+# of mobidb-pdb_cnn_3_6_1 which was undertaken due to interest in the use of a
+# x75 disorder weight. x75 disorder weight was of interest because it was the
+# smallest weight tested which seemed to properly counteract overfitting. Other
+# models tested did implement even larger disorder weights and did not appear 
+# to demonstrate any abnormal behavior while also counteracting overfitting.
+# However, there was a desire to limit the size of the disorder weight as much
+# as possible in order to minimize manipulation of the dataset. This, along with
+# the fact that these other models did not appear to demonstrate any significant
+# increases in performance, made x75 disorder weight appear to be the best choice
+# going forward. This particular model was part of a series of models which were
+# specifically looking at testing out various different implementations of 
+# multiheaded architectures. It was hoped that the increased complexity of a
+# multiheaded architecture could lead to performance increases. In general,
+# this series of models seemed to demonstrate that the performance of a multiheaded
+# model was simply the average of the performances of the individual models which 
+# made up said multiheaded model. Note that this was not always true. This model
+# looked to try to basically do the equivalent of combining a model that had a
+# kernal of 50 with a model that had a kernal of 100 (these were the two most 
+# successful candidates from the 7 series of models). Additionally, this model
+# was constructed so that each head had only 1 1D conv layer. It was hoped that this
+# would allow the model to have greater generalizability while also taking advantage
+# of the additional perspectives offered by the multiple heads. This model had
+# decreased accuracy, MCC, specificity, precision, and F1 performance and increased
+# sensitivity performance when compared to both its counterpart mobidb-pdb_cnn_9_3_2
+# and baseline model mobidb-pdb_cnn_6_2. Its training curves appear to be normal 
+# (features rapid initial growth of accuracy and specificity that eventually levels 
+# off, something which would be expected from a model that is progressively learning
+# to make better predictions; this is in contrast to the overfitting models which 
+# demonstrate abnormally good accuracy and specificity right from the start of 
+# training). While the performance of this model appears to be worse when compared
+# to its counterparts, it is still being considered for further investigation due
+# to the fact that it is somewhat unique in having a balanced sensitivity and 
+# specificity.
+
 
 import os
 from math import floor
@@ -192,11 +238,11 @@ test_batches = BatchGenerator(test_records, 32, sym_codes)
 # Build model
 inputs = keras.layers.Input(shape=(None, 20), name='input1')
 
-# 25 kernal head
+# 50 kernal head
 mask1 = layers.Masking(mask_value=0, name='mask11')(inputs)
 conv11 = MaskedConv1D(128, 50, padding='same', activation='relu', name='conv1d11')(mask1)
 
-# 50 kernal head
+# 100 kernal head
 mask2 = layers.Masking(mask_value=0, name='mask21')(inputs)
 conv21 = MaskedConv1D(128, 100, padding='same', activation='relu', name='conv1d21')(mask2)
 

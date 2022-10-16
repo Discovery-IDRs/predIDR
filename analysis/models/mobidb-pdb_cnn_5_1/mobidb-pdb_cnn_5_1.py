@@ -4,21 +4,20 @@
 # cuda 10.1
 # cudnn 7.6
 
-# add 1 128 dense
-
 # Purpose:
 # Examine the effect adding a dense layer has on performance.
 
 # Architecture:
 # disorder weight: x1
-# layers: x2 1D conv layers with 128 filter and 200 kernal
+# layers: x2 1D conv layers with 128 filter and 20 kernal
 #         x1 dense layer with 128 nodes
 # epoch: 50
 
 # Significance:
-# Training curves appear to be abnormal and seem to indicate possible
-# overfitting occuring. This model was ultimately disregarded when it was found
-# that increasing disorder weight seemed to prevent overfitting.
+# Training curves appear to be abnormal and seem to indicate possible overfitting
+# is occuring. This model was ultimately disregarded from further consideration and
+# development when it was found that increasing disorder weight seemed to prevent
+# overfitting.
 
 
 import os

@@ -4,14 +4,6 @@
 # cuda 10.1
 # cudnn 7.6
 
-# increase disorder weight to 75
-# increase epoch to 100
-# use deepsf architecture
-# add 10 conv1d
-# use 10 filter
-# use 10 kernal
-# add 500 dense
-
 # Purpose:
 # Test out architecture presented in doi: 10.1093/bioinformatics/btx780
 
@@ -22,14 +14,19 @@
 # epoch: 100
 
 # Significance:
-# Demonstrated better accuracy, MCC, specificty, precision, and F1 performance,
-# compared to mobidb-pdb_cnn_deepsf_2. Demonstrated worse sensitivity
-# performance compared to mobidb-pdb_cnn_deepsf_2.Demonstrated worse accuracy,
-# MCC, specificity, precision, and F1 performance compared to baseline model
-# mobidb-pdb_cnn_6_2. Demonstrated better sensitivity performance compared to
-# baseline model mobidb-pdb_cnn_6_2. Worse performance than baseline model
-# resulted in features of this model not being considered for incorporation
-# into final model.
+# Test of the 10 kernal architecture variation presented in the listed 
+# paper. Demonstrated better accuracy, MCC, specificity, precision, and
+# F1 performance compared to mobidb-pdb_cnn_deepsf_1. Demonstrated 
+# worse sensitivity performance compared to mobidb-pdb_cnn_deepsf_1. 
+# Demonstrated worse accuracy, MCC, specificity, precision, and F1 
+# performance compared to baseline model mobidb-pdb_cnn_6_2. 
+# Demonstrated better sensitivity performance compared to baseline
+# model mobidb-pdb_cnn_6_2. Interestingly, training curves of this 
+# model actually look fairly normal indicating that overfitting is
+# probably not an issue. Note also that the particularly high 
+# sensitivity may warrant further investigation through this could 
+# just be due to the possibility that the model may be making very few
+# positive predictions in general which just happen to be accurate.
 
 
 import os
