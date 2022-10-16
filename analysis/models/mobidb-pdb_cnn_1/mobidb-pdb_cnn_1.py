@@ -6,7 +6,7 @@
 
 # Purpose:
 # This was an initial test run of the code for a cnn trained on the
-# mobidb-pdb dataset to see if everything worked properly.
+# mobidb-pdb dataset. 
 
 # Architecture:
 # disorder weight: x1
@@ -14,13 +14,15 @@
 # epoch: 50
 
 # Significance:
-# Its performance was used as a baseline which the performance of other model
-# architectures could be compared to before it was found that increasing
-# disorder weight seemed to prevent overfitting (performance of model
-# mobidb-pdb_cnn_6_2 ultimately was used as a baseline for later models).
-# Training curves appear to be abnormal and seem to indicate possible
-# overfitting occuring (hence why this model's performance was no longer used
-# as a baseline for later models).
+# The performance of this model was initially used as the baseline to which
+# the performances of other model architectures were compared to. However,
+# when it was determined that increasing disorder weight seemed to prevent
+# overfitting, this model was disregarded for further consideration and
+# development and the performance of mobidb-pdb_cnn_3_6_1 and mobidb-pdb_cnn_6_2
+# were used as baselines instead. This was because the training curves for this
+# model appeared to be abnormal and seemed to indicate that possible overfitting
+# was occurring.
+
 
 import os
 from math import floor
