@@ -83,6 +83,7 @@ def load_data(seqs_path, labels_path):
 
 
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+model_data = [('../../models/mobidb-pdb_cnn_6_1/out_model/mobidb-pdb_cnn_6_1.h5', 'mobidb-pdb_cnn_6_1', 'conv1d2')]
 
 # Load data
 train_records = load_data('../../mobidb-pdb_validation/split_data/out/train_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/train_labels.fasta')
@@ -97,7 +98,6 @@ test_batches = BatchGenerator(test_records, 32, alphabet)
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-model_data = [('../../models/mobidb-pdb_cnn_6_1/out_model/mobidb-pdb_cnn_6_1.h5', 'mobidb-pdb_cnn_6_1', 'conv1d2')]
 for model_path, model_name, layer_name in model_data:
     out_path = f'out/{model_name}/'
     if not os.path.exists(f'out/{model_name}/'):
