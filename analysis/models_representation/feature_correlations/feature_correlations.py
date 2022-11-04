@@ -37,13 +37,16 @@ class BatchGenerator(tf.keras.utils.Sequence):
             x[i, :len(syms)] = [self.sym2idx.get(sym, 0) for sym in syms]
             y[i, :len(syms)] = [int(label) if label in ["0", "1"] else 2 for label in labels]
 
+        w = np.ones((self.batch_size, max_len))
+        w[y == 2] = 0
+
         x = tf.keras.utils.to_categorical(x, num_classes=len(self.sym2idx))
         y = tf.keras.utils.to_categorical(y, num_classes=3)
         for i, (syms, _) in enumerate(records):
             x[i, len(syms):, :] = 0
             y[i, len(syms):, :] = 0
 
-        return x, y
+        return x, y, w
 
     def on_epoch_end(self):
         """Shuffles data after each epoch."""
@@ -94,12 +97,12 @@ test_batches = BatchGenerator(test_records, 32, alphabet)
 model_data = [('../../models/mobidb-pdb_cnn_6_1/out_model/mobidb-pdb_cnn_6_1.h5', 'conv1d2')]
 for model_path, layer_name in model_data:
     model = tf.keras.models.load_model(model_path, custom_objects={"MaskedConv1D": MaskedConv1D})
-    layer_dict = {layer.name: layer for layer in model.layers}
-    layer = layer_dict[layer_name]
+    layer = model.get_layer(layer_name)
+    feature_extractor = tf.keras.Model(inputs=model.inputs, outputs=layer.output)
 
-# for each example in the data
-# calculate feature maps using model
-# calculate feature maps using known features
+    for input, _, weight in train_batches:
+        features = feature_extractor(input).numpy()
+        # calculate feature maps using known features
 
 # calculate correlations between all pairs of features in the two sets
 # visualize it somehow
