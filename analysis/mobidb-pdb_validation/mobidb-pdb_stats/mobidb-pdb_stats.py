@@ -5,24 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.ndimage as ndimage
-
-
-def load_fasta(path):
-    fasta = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            fasta.append((header, seq))
-    return fasta
+from src.utils import read_fasta
 
 
 def get_segments(aa_seq, label_seq, segment_type, accession):
@@ -48,11 +31,11 @@ def count_amino_acids(aa_seq):
 
 
 seqs_dict = {}
-for header, seq in load_fasta('../generate_fastas/out/mobidb-pdb_seqs.fasta'):
+for header, seq in read_fasta('../generate_fastas/out/mobidb-pdb_seqs.fasta'):
     accession = header.split('|')[0][1:]  # Trim >
     seqs_dict[accession] = seq
 labels_dict = {}
-for header, seq in load_fasta('../generate_fastas/out/mobidb-pdb_labels.fasta'):
+for header, seq in read_fasta('../generate_fastas/out/mobidb-pdb_labels.fasta'):
     accession = header.split('|')[0][1:]  # Trim >
     labels_dict[accession] = seq
 

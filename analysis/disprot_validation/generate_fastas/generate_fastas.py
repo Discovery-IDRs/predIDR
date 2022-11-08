@@ -28,13 +28,13 @@ fields = ['disprot_id', 'acc', 'name', 'released']
 # Create single FASTA file for all sequences
 with open('out/disprot_seqs.fasta', 'w') as seqs_file, open('out/disprot_labels.fasta', 'w') as labels_file:
     for record in data:
-        header = '|'.join([field + ':' + record[field] for field in fields]) + '\n'
+        header = '|'.join([field + ':' + record[field] for field in fields])
         seq = record['sequence']
         label = get_label(record)
-        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)]) + '\n'
-        seqs_file.write('>' + header + seqstring)
-        labels_file.write('>' + header + labelstring)
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)])
+        seqs_file.write(f'>{header}\n{seqstring}\n')
+        labels_file.write(f'>{header}\n{labelstring}\n')
 
 """
 DEPENDENCIES
