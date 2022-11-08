@@ -7,7 +7,7 @@
 
 # All directories
 docs/
-out/
+out*/
 __pycache__/
 .ipynb_checkpoints/
 
