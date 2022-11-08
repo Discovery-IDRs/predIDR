@@ -2,24 +2,7 @@
 
 import os
 
-
-def load_fasta(path):
-    fasta = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            fasta.append((header, seq))
-    return fasta
-
+from src.utils import read_fasta
 
 # Set file paths
 seqs_path = '../remove_outliers/out/mobidb-pdb_seqs.fasta'
@@ -27,8 +10,8 @@ labels_path = '../remove_outliers/out/mobidb-pdb_labels.fasta'
 cluster_path = '../cluster_seqs/out/mobidb-pdb.clstr'
 
 # Load FASTA files
-seqs_fasta = load_fasta(seqs_path)
-labels_fasta = load_fasta(labels_path)
+seqs_fasta = read_fasta(seqs_path)
+labels_fasta = read_fasta(labels_path)
 
 records = {}  # Dictionary of header, seq, header, label keyed by accession
 for header, seq in seqs_fasta:
@@ -58,15 +41,15 @@ if not os.path.exists('out/labels/'):
 with open('out/mobidb-pdb_seqs.fasta', 'w') as seqs_file, open('out/mobidb-pdb_labels.fasta', 'w') as labels_file:
     for accession in sorted(reps):
         seq_header, seq, label_header, label = records[accession]
-        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)]) + '\n'
-        seqs_file.write(seq_header + seqstring)
-        labels_file.write(label_header + labelstring)
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)])
+        seqs_file.write(f'{seq_header}\n{seqstring}\n')
+        labels_file.write(f'{label_header}\n{labelstring}\n')
 
         with open(f'out/seqs/{accession}.fasta', 'w') as file:
-            file.write(seq_header + seqstring)
+            file.write(f'{seq_header}\n{seqstring}\n')
         with open(f'out/labels/{accession}.fasta', 'w') as file:
-            file.write(label_header + labelstring)
+            file.write(f'{label_header}\n{labelstring}\n')
 
 """
 DEPENDENCIES

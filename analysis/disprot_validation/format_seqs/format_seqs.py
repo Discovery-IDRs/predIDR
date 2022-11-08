@@ -2,24 +2,7 @@
 
 import os
 import re
-
-
-def load_fasta(path):
-    fasta = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            fasta.append((header, seq))
-    return fasta
+from src.utils import read_fasta
 
 
 # Set file paths
@@ -28,8 +11,8 @@ labels_path = '../remove_outliers/out/disprot_labels.fasta'
 cluster_path = '../cluster_seqs/out/disprot.clstr'
 
 # Load FASTA files
-seqs_fasta = load_fasta(seqs_path)
-labels_fasta = load_fasta(labels_path)
+seqs_fasta = read_fasta(seqs_path)
+labels_fasta = read_fasta(labels_path)
 
 records = {}  # Dictionary of header, seq, header, label keyed by accession
 for header, seq in seqs_fasta:
@@ -40,12 +23,12 @@ for header, label in labels_fasta:
     records[accession].extend([header, label])
 
 # Read raw cluster output and extract representative protein codes
-reps = []
+representatives = []
 with open(cluster_path) as file:
     for line in file:
         if '*' in line:
             accession = re.search(r'disprot_id:(DP[0-9]+)', line).group(1)
-            reps.append(accession)
+            representatives.append(accession)
 
 # Make output directories
 if not os.path.exists('out/'):
@@ -57,17 +40,17 @@ if not os.path.exists('out/labels/'):
 
 # Write output
 with open('out/disprot_seqs.fasta', 'w') as seqs_file, open('out/disprot_labels.fasta', 'w') as labels_file:
-    for accession in sorted(reps):
+    for accession in sorted(representatives):
         seq_header, seq, label_header, label = records[accession]
-        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)]) + '\n'
-        seqs_file.write(seq_header + seqstring)
-        labels_file.write(label_header + labelstring)
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)])
+        seqs_file.write(f'{seq_header}\n{seqstring}\n')
+        labels_file.write(f'{label_header}\n{labelstring}\n')
 
         with open(f'out/seqs/{accession}.fasta', 'w') as file:
-            file.write(seq_header + seqstring)
+            file.write(f'{seq_header}\n{seqstring}\n')
         with open(f'out/labels/{accession}.fasta', 'w') as file:
-            file.write(label_header + labelstring)
+            file.write(f'{label_header}\n{labelstring}\n')
 
 """
 DEPENDENCIES

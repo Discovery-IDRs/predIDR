@@ -2,23 +2,7 @@
 
 import os
 
-
-def load_fasta(path):
-    fasta = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            fasta.append((header, seq))
-    return fasta
+from src.utils import read_fasta
 
 
 def extract_features(fasta, label_name):
@@ -39,9 +23,9 @@ def extract_features(fasta, label_name):
     return features
 
 
-curated_fasta = load_fasta('../../../data/MobiDB/2020_09/curated-disorder-merge.fasta')
-missing_fasta = load_fasta('../../../data/MobiDB/2020_09/derived-missing_residues-th_90.fasta')
-mobile_fasta = load_fasta('../../../data/MobiDB/2020_09/derived-mobile-th_90.fasta')
+curated_fasta = read_fasta('../../../data/MobiDB/2020_09/curated-disorder-merge.fasta')
+missing_fasta = read_fasta('../../../data/MobiDB/2020_09/derived-missing_residues-th_90.fasta')
+mobile_fasta = read_fasta('../../../data/MobiDB/2020_09/derived-mobile-th_90.fasta')
 
 curated_features = extract_features(curated_fasta, 'curated-disorder-merge')
 missing_features = extract_features(missing_fasta, 'derived-missing_residues-th_90')
@@ -115,11 +99,11 @@ with open('out/mobidb-pdb_seqs.fasta', 'w') as seqs_file, open('out/mobidb-pdb_l
         label = ''.join(syms)
 
         # Write labels to file
-        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)]) + '\n'
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+        labelstring = '\n'.join([label[i:i+80] for i in range(0, len(label), 80)])
 
-        seqs_file.write(seq_header + seqstring)
-        labels_file.write(label_header + labelstring)
+        seqs_file.write(f'{seq_header}\n{seqstring}\n')
+        labels_file.write(f'{label_header}\n{labelstring}\n')
 
 """
 DEPENDENCIES
