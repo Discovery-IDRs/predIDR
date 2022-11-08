@@ -68,4 +68,5 @@ history = model.fit(train_batches, epochs=num_epochs, validation_data=validation
 model.save('out/model_trained.h5')
 
 df = pd.DataFrame(history.history)
-df.to_csv('out/history.tsv', sep='\t', index_label='epoch')
+df['epoch'] = df.index + 1  # Add epochs to df
+df.to_csv('out/history.tsv', sep='\t', index=False)
