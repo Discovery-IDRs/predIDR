@@ -49,7 +49,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Compile all sequences into FASTA files
-for name, subset in zip(['train', 'test', 'validation'], [train, test, validation]):
+for name, subset in zip(['all', 'train', 'test', 'validation'], [reps, train, test, validation]):
     with open(f'out/{name}_seqs.fasta', 'w') as seqs_file, open(f'out/{name}_labels.fasta', 'w') as labels_file:
         for accession in subset:
             seq_header, seq, label_header, label = records[accession]
@@ -59,7 +59,7 @@ for name, subset in zip(['train', 'test', 'validation'], [train, test, validatio
             labels_file.write(f'{label_header}\n{labelstring}\n')
 
 # Compute statistics for each subset of the split
-for name, subset in zip(['train', 'test', 'validation'], [train, test, validation]):
+for name, subset in zip(['all', 'train', 'test', 'validation'], [reps, train, test, validation]):
     residue_num = 0
     order_num = 0
     disorder_num = 0
@@ -81,29 +81,37 @@ print('Subsets sum to total protein number:', sum([len(subset) for subset in [tr
 
 """
 OUTPUT
+ALL
+Number of proteins: 21560
+Number of residues: 10242811
+Number of ordered residues: 5942300
+Fraction of ordered residues: 0.58014347819168
+Number of disordered residues: 601545
+Fraction of disordered residues: 0.05872850724278716
+
 TRAIN
-Number of proteins: 17399
-Number of residues: 8234588
-Number of ordered residues: 7727846
-Fraction of ordered residues: 0.9384617663931699
-Number of disordered residues: 506742
-Fraction of disordered residues: 0.06153823360683012
+Number of proteins: 17248
+Number of residues: 8152053
+Number of ordered residues: 4725712
+Fraction of ordered residues: 0.5796959367168001
+Number of disordered residues: 478645
+Fraction of disordered residues: 0.05871465752246704
 
 TEST
-Number of proteins: 2175
-Number of residues: 1065462
-Number of ordered residues: 1005395
-Fraction of ordered residues: 0.9436235173098618
-Number of disordered residues: 60067
-Fraction of disordered residues: 0.056376482690138174
+Number of proteins: 2156
+Number of residues: 1069167
+Number of ordered residues: 616320
+Fraction of ordered residues: 0.5764487680596202
+Number of disordered residues: 66602
+Fraction of disordered residues: 0.06229335548141684
 
 VALIDATION
-Number of proteins: 2174
-Number of residues: 1048302
-Number of ordered residues: 975730
-Fraction of ordered residues: 0.9307718577280212
-Number of disordered residues: 72572
-Fraction of disordered residues: 0.06922814227197888
+Number of proteins: 2156
+Number of residues: 1021591
+Number of ordered residues: 600268
+Fraction of ordered residues: 0.5875815272452478
+Number of disordered residues: 56298
+Fraction of disordered residues: 0.05510815972341181
 
 Subsets sum to total protein number: True
 

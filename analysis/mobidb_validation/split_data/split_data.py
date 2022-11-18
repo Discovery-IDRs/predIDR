@@ -49,7 +49,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Compile all sequences into FASTA files
-for name, subset in zip(['train', 'test', 'validation'], [train, test, validation]):
+for name, subset in zip(['all', 'train', 'test', 'validation'], [reps, train, test, validation]):
     with open(f'out/{name}_seqs.fasta', 'w') as seqs_file, open(f'out/{name}_labels.fasta', 'w') as labels_file:
         for accession in subset:
             seq_header, seq, label_header, label = records[accession]
@@ -59,7 +59,7 @@ for name, subset in zip(['train', 'test', 'validation'], [train, test, validatio
             labels_file.write(f'{label_header}\n{labelstring}\n')
 
 # Compute statistics for each subset of the split
-for name, subset in zip(['train', 'test', 'validation'], [train, test, validation]):
+for name, subset in zip(['all', 'train', 'test', 'validation'], [reps, train, test, validation]):
     residue_num = 0
     order_num = 0
     disorder_num = 0
@@ -81,6 +81,14 @@ print('Subsets sum to total protein number:', sum([len(subset) for subset in [tr
 
 """
 OUTPUT
+ALL
+Number of proteins: 21748
+Number of residues: 10348352
+Number of ordered residues: 9708971
+Fraction of ordered residues: 0.9382142200033396
+Number of disordered residues: 639381
+Fraction of disordered residues: 0.06178577999666034
+
 TRAIN
 Number of proteins: 17399
 Number of residues: 8234588
