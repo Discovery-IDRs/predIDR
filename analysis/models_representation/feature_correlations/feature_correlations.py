@@ -19,15 +19,9 @@ weights = {'0': 1, '1': 2, '-': 3}
 batch_size = 32
 model_data = [('../../models/mobidb-pdb_cnn_6_1/out_model/mobidb-pdb_cnn_6_1.h5', 'mobidb-pdb_cnn_6_1', 'conv1d2')]
 
-# Load data
-train_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/train_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/train_labels.fasta')
-validation_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/validation_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/validation_labels.fasta')
-test_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/test_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/test_labels.fasta')
-
-# Batch data
-train_batches = utils.BatchGenerator(train_records, batch_size, alphabet, weights)
-validation_batches = utils.BatchGenerator(validation_records, batch_size, alphabet, weights)
-test_batches = utils.BatchGenerator(test_records, batch_size, alphabet, weights)
+# Load and batch data
+records = utils.load_data('../../mobidb-pdb_validation/split_data/out/all_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/all_labels.fasta')
+batches = utils.BatchGenerator(records, batch_size, alphabet, weights)
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -46,7 +40,7 @@ for model_path, model_name, layer_name in model_data:
     learned_features = []
     known_features = []
     training_weights = []
-    for input, _, training_weight in train_batches:  # Predict method was acting strange, so extract individual batches
+    for input, _, training_weight in batches:  # Predict method was acting strange, so extract individual batches
         features = feature_extractor(input).numpy()
 
         # Combine features across examples into single axis and remove padding
