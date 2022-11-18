@@ -40,17 +40,14 @@ tf.keras.utils.set_random_seed(1)
 # Load data
 train_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/train_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/train_labels.fasta')
 validation_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/validation_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/validation_labels.fasta')
-test_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/test_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/test_labels.fasta')
 
 # Batch data
 train_batches = utils.BatchGenerator(train_records, batch_size, alphabet, weights)
 validation_batches = utils.BatchGenerator(validation_records, batch_size, alphabet, weights)
-test_batches = utils.BatchGenerator(test_records, batch_size, alphabet, weights)
 
 # Build model
 inputs = tf.keras.layers.Input(shape=(None, 20), name='input1')
-x = tf.keras.layers.Masking(mask_value=0, name='mask1')(inputs)
-x = tf.keras.layers.Conv1D(128, 20, padding='same', activation='relu', name='conv1d1')(x)
+x = tf.keras.layers.Conv1D(128, 20, padding='same', activation='relu', name='conv1d1')(inputs)
 x = tf.keras.layers.Conv1D(128, 20, padding='same', activation='relu', name='conv1d2')(x)
 outputs = tf.keras.layers.Dense(2, activation='softmax', name='output1')(x)
 
