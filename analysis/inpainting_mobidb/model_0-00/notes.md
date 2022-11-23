@@ -23,6 +23,12 @@ generator values ranging in a max difference of 1 and the same with the generato
 
 ![Alt text](out/metrics_loss_model0-0.png)
 
+### Comparing Model Outputs 
+Because of oscillations in the losses, there is a prediction that generator outputs the same disordered amino acid sequence for all contexts. 
+I looked at the model outputs at 0 epochs (without training) and at 300 epochs (with training). With training, the model outputs the same
+amino acid sequence for the disordered sequence for all contexts. Without training, the model outputs different amino acid sequences.
+This means that the model is learning to predict the same amino acid sequence for all context. 
+
 ## Conclusions
 The model did not converge when therefore looked into diagnosing model architecture problems and deduced that there needs
 to be a simpler model architecture based off of our size of data. 

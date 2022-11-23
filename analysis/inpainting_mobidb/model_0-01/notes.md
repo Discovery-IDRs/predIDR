@@ -23,6 +23,11 @@ values to 2 to 16. The loss curves look better than model_0-0 because there is l
 with a simplified architecture. 
 
 ![Alt text](/Users/SamihaMahin/PycharmProjects/predIDR/analysis/inpainting_mobidb/model_0-01/out/metrics_loss_model0-01.png)
+
+### Model Outputs
+Looking at the training of model outputs for a simpler architecture, all disordered sequences look similar for all contexts and have
+repeated segments of the amino acid isoleucine(I). 
+
 ## Conclusion
 The loss curve looks better than model_0-0 because of the lack of sporadic oscillation. We will be implementing alternate 
-training where on this simplified model architecture for model_0-01.
+training where on this simplified model architecture for model_0-02.

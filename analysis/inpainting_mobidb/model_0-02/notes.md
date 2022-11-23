@@ -21,6 +21,11 @@ is a decrease in the loss for the validation compared to the training loss.
 
 ![Alt text](/Users/SamihaMahin/PycharmProjects/predIDR/analysis/inpainting_mobidb/model_0-02/out/metrics_loss_model0-02.png)
 
+## Model Outputs
+The amino acid composition of the disordered regions for a model with a simpler architecture and alternate training 
+has contiguous repeated regions of the amino acid Glycine(G) and then various amino acids towards the ends of the
+disorder regions. 
+
 # Conclusion
 The steadiness of the accuracy and loss curves show that alternate training and a simplified architecture works better 
 with the model and our dataset. We will be looking into our model outputs to determine if there is mode collpase. 

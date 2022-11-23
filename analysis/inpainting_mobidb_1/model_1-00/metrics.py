@@ -1,4 +1,4 @@
-"""Metrics for model_0-01."""
+"""Metrics for model_0-00."""
 
 import os
 
@@ -15,24 +15,22 @@ if not os.path.exists("out/"):
 metrics_path = "out/metrics.tsv"
 metrics_df = pd.read_csv(metrics_path, sep='\t')
 
-plt.plot(metrics_df['train generator loss'], label='training generator loss')
-plt.plot(metrics_df['train discriminator loss'], label='training discriminator loss')
-plt.plot(metrics_df['valid generator loss'], label='validation generator loss')
-plt.plot(metrics_df['valid discriminator loss'], label='validation discriminator loss')
+plt.plot(metrics_df['loss'], label='training generator loss')
+plt.plot(metrics_df['val_loss'], label='validation generator loss')
 plt.xlabel('epochs')
 plt.ylabel('loss')
 plt.legend()
-plt.title("Loss of Model")
-plt.savefig('out/metrics_loss_model.png', dpi=600)
+plt.title("Loss of Generator")
+plt.savefig('out/metrics_loss_model1-00.png', dpi=600)
 plt.close()
 
-plt.plot(metrics_df['train accuracy'], label='training accuracy')
-plt.plot(metrics_df['valid accuracy'], label='validation accuracy')
+plt.plot(metrics_df['categorical_accuracy'], label='training accuracy')
+plt.plot(metrics_df['val_categorical_accuracy'], label='validation accuracy')
 plt.xlabel('epochs')
 plt.ylabel('accuracy')
 plt.legend()
-plt.title("Accuracy of Model")
-plt.savefig('out/metrics_accuracy_model.png', dpi=600)
+plt.title("Accuracy of Generator")
+plt.savefig('out/metrics_accuracy_model1-00.png', dpi=600)
 plt.close()
 
 model = tf.keras.models.load_model('out/generator_model.h5')
@@ -68,6 +66,7 @@ with open("out/model_output_epoch300.txt", "w") as file:
 
         file.write(f'>{i}\n' + seqstring_label + seqstring_seq + seqstring_generated)
 
+
 # making graph comparing amino acid from predicted vs actual
 
 train_seq, train_label = load_data(train_seq_path, train_label_path,sym2idx)
@@ -88,8 +87,8 @@ for seq, label, generated in zip(train_seq, train_label, train_generated):
 x = np.arange(len(alphabet))
 width = 0.35
 fig, ax = plt.subplots()
-ax.bar(x - width/2, counts.sum(axis=1), width, label='actual amino acid composition')
-ax.bar(x + width/2, counts.sum(axis=0), width, label='generated amino acid composition')
+ax.bar(x - width/2, counts.sum(axis=1), width, label='true amino acid composition')
+ax.bar(x + width/2, counts.sum(axis=0), width, label='predicted amino acid composition')
 ax.set_xticks(x)
 ax.set_xticklabels(alphabet)
 fig.tight_layout()
