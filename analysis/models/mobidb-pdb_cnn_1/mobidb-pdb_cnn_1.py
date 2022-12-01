@@ -33,7 +33,7 @@ import src.models.utils as utils
 alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 weights = {'0': 1, '1': 1}
 model_name = 'mobidb-pdb_cnn_1'
-num_epochs = 50
+num_epochs = 30
 batch_size = 32
 tf.keras.utils.set_random_seed(1)
 
@@ -41,14 +41,21 @@ tf.keras.utils.set_random_seed(1)
 train_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/train_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/train_labels.fasta')
 validation_records = utils.load_data('../../mobidb-pdb_validation/split_data/out/validation_seqs.fasta', '../../mobidb-pdb_validation/split_data/out/validation_labels.fasta')
 
+# Calculate class imbalance and update weights
+counts = {}
+for seq, labels in train_records:
+    for label in labels:
+        counts[label] = counts.get(label, 0) + 1
+weights['1'] = counts['0'] / counts['1']
+
 # Batch data
 train_batches = utils.BatchGenerator(train_records, batch_size, alphabet, weights)
 validation_batches = utils.BatchGenerator(validation_records, batch_size, alphabet, weights)
 
 # Build model
 inputs = tf.keras.layers.Input(shape=(None, 20), name='input1')
-x = tf.keras.layers.Conv1D(128, 20, padding='same', activation='relu', name='conv1d1')(inputs)
-x = tf.keras.layers.Conv1D(128, 20, padding='same', activation='relu', name='conv1d2')(x)
+x = tf.keras.layers.Conv1D(128, 20, padding='same', activation='relu', kernel_regularizer=tf.keras.regularizers.L2(0.0001), name='conv1d1')(inputs)
+x = tf.keras.layers.Conv1D(128, 20, padding='same', activation='relu', kernel_regularizer=tf.keras.regularizers.L2(0.0001), name='conv1d2')(x)
 outputs = tf.keras.layers.Dense(2, activation='softmax', name='output1')(x)
 
 model = tf.keras.Model(inputs=inputs, outputs=outputs, name=model_name)
