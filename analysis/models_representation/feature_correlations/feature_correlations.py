@@ -51,7 +51,7 @@ for model_path, model_name, layer_name in model_data:
         training_weight = np.swapaxes(training_weight, 0, 1)
         training_weight = training_weight.reshape((example_num * position_num), order='F')
 
-        features = features[training_weight != 0, :]  # Drop padding and unknown labels
+        features = features[training_weight != 0, :]  # Drop padding
         learned_features.append(features.transpose())
 
         # Calculate feature maps using known features
